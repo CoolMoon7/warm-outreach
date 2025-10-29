@@ -124,21 +124,8 @@ export default function Team() {
     if (!memberToRemove) return;
 
     try {
-      // Remove team_id from profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ team_id: null })
-        .eq("user_id", memberToRemove.user_id);
-
-      if (profileError) throw profileError;
-
-      // Delete user role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", memberToRemove.user_id);
-
-      if (roleError) throw roleError;
+      const { error } = await supabase.rpc('remove_team_member', { _target_user_id: memberToRemove.user_id });
+      if (error) throw error;
 
       toast({
         title: "Member removed",

@@ -357,6 +357,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      remove_team_member: {
+        Args: { _target_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "founder" | "member"
