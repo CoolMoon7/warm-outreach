@@ -344,6 +344,7 @@ export type Database = {
       }
     }
     Functions: {
+      get_team_id_by_invite: { Args: { _invite: string }; Returns: string }
       get_user_team_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {

@@ -144,20 +144,17 @@ const TeamSetup = () => {
         if (createProfileError) throw createProfileError;
       }
 
-      // Find team by invite code (case-insensitive)
-      const { data: team, error: teamError } = await supabase
-        .from("teams")
-        .select("id")
-        .ilike("invite_code", inviteCode.trim())
-        .maybeSingle();
+      // Resolve team by invite code via secure RPC (bypasses RLS safely)
+      const { data: teamId, error: teamError } = await supabase
+        .rpc("get_team_id_by_invite", { _invite: inviteCode.trim() });
 
       if (teamError) throw teamError;
-      if (!team) throw new Error("Invalid invite code");
+      if (!teamId) throw new Error("Invalid invite code");
 
       // Join the team
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ team_id: team.id })
+        .update({ team_id: teamId })
         .eq("user_id", user.id);
 
       if (profileError) throw profileError;

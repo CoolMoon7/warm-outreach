@@ -25,6 +25,7 @@ export default function Team() {
   const [isFounder, setIsFounder] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [memberToRemove, setMemberToRemove] = useState<any>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -155,6 +156,31 @@ export default function Team() {
     }
   };
 
+  const handleLeaveTeam = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ team_id: null })
+        .eq("user_id", user.id);
+      if (profileError) throw profileError;
+
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", user.id);
+      if (roleError) throw roleError;
+
+      toast({ title: "Left team", description: "You have left the team." });
+      setLeaveOpen(false);
+      loadTeamData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -162,6 +188,12 @@ export default function Team() {
           <h1 className="text-3xl font-bold mb-2">{teamName}</h1>
           <p className="text-muted-foreground">Manage your team members and track performance</p>
         </div>
+        {!isFounder && (
+          <Button variant="outline" onClick={() => setLeaveOpen(true)}>
+            <UserX className="h-4 w-4 mr-2" />
+            Leave Team
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 mb-8">
@@ -280,6 +312,23 @@ export default function Team() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleRemoveMember}>
               Remove Member
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave Team</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to leave {teamName}? You will lose access to all team folders and data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLeaveTeam}>
+              Leave Team
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
