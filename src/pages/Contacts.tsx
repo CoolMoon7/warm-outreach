@@ -166,8 +166,8 @@ export default function Contacts() {
   };
 
   const renderContactsTable = (contactsList: any[]) => (
-    <div className="border rounded-lg overflow-x-auto">
-      <Table>
+    <div className="w-full overflow-x-auto border rounded-lg">
+      <Table className="min-w-[1200px]">
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[150px]">Name</TableHead>
@@ -271,7 +271,7 @@ export default function Contacts() {
   const respondedContacts = filteredContacts.filter((c) => c.responded);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-full overflow-hidden">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Contacts</h1>
         <p className="text-muted-foreground">Manage all your outreach contacts</p>
@@ -289,7 +289,7 @@ export default function Contacts() {
         </div>
       </div>
 
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="all" className="w-full">
         <TabsList>
           <TabsTrigger value="all">
             All ({filteredContacts.length})
@@ -302,15 +302,15 @@ export default function Contacts() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-4">
+        <TabsContent value="all" className="mt-4 w-full">
           {renderContactsTable(filteredContacts)}
         </TabsContent>
 
-        <TabsContent value="sent" className="mt-4">
+        <TabsContent value="sent" className="mt-4 w-full">
           {renderContactsTable(sentContacts)}
         </TabsContent>
 
-        <TabsContent value="responded" className="mt-4">
+        <TabsContent value="responded" className="mt-4 w-full">
           {renderContactsTable(respondedContacts)}
         </TabsContent>
       </Tabs>
