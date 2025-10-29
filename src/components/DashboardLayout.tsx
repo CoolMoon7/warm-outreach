@@ -29,12 +29,22 @@ export default function DashboardLayout() {
         return;
       }
 
-      // Check if user has a team
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("team_id")
-        .eq("user_id", session.user.id)
-        .single();
+      // Fetch profile with one retry to avoid race conditions after team creation
+      const fetchProfile = async () =>
+        supabase
+          .from("profiles")
+          .select("team_id")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+      let { data: profile } = await fetchProfile();
+
+      if (!profile?.team_id) {
+        // Retry once after a short delay
+        await new Promise((r) => setTimeout(r, 250));
+        const retry = await fetchProfile();
+        profile = retry.data;
+      }
 
       if (!profile?.team_id) {
         navigate("/team-setup");

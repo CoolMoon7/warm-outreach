@@ -32,7 +32,7 @@ const TeamSetup = () => {
         .single();
 
       if (profile?.team_id) {
-        navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
       }
     } catch (error) {
       console.error("Error checking team:", error);
@@ -118,7 +118,7 @@ const TeamSetup = () => {
       // Small delay to ensure all async operations complete
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (error: any) {
       toast({
         title: "Error",
