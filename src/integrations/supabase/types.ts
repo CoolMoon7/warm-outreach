@@ -344,6 +344,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_founder_update_member: {
+        Args: { _target_user_id: string }
+        Returns: boolean
+      }
       get_team_id_by_invite: { Args: { _invite: string }; Returns: string }
       get_user_team_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
