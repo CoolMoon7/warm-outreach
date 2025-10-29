@@ -144,11 +144,11 @@ const TeamSetup = () => {
         if (createProfileError) throw createProfileError;
       }
 
-      // Find team by invite code
+      // Find team by invite code (case-insensitive)
       const { data: team, error: teamError } = await supabase
         .from("teams")
         .select("id")
-        .eq("invite_code", inviteCode.toUpperCase())
+        .ilike("invite_code", inviteCode.trim())
         .maybeSingle();
 
       if (teamError) throw teamError;
