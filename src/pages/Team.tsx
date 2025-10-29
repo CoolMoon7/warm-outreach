@@ -3,7 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Users, Mail, Copy, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Users, Mail, Copy, Check, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Team() {
@@ -11,6 +22,9 @@ export default function Team() {
   const [teamName, setTeamName] = useState<string>("");
   const [inviteLink, setInviteLink] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [isFounder, setIsFounder] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [memberToRemove, setMemberToRemove] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -20,13 +34,27 @@ export default function Team() {
   const loadTeamData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setCurrentUserId(user.id);
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("team_id")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .single();
 
       if (!profile?.team_id) return;
+
+      // Check if current user is founder
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "founder")
+        .maybeSingle();
+
+      setIsFounder(!!roleData);
 
       // Get team info
       const { data: teamData } = await supabase
@@ -43,22 +71,30 @@ export default function Team() {
         .select("id, name, email, user_id")
         .eq("team_id", profile.team_id);
 
-      // Get email counts for each member
-      const membersWithCounts = await Promise.all(
+      // Get roles and email counts for each member
+      const membersWithData = await Promise.all(
         (members || []).map(async (member) => {
           const { count } = await supabase
             .from("emails")
             .select("*", { count: "exact", head: true })
             .eq("sender_id", member.user_id);
 
+          // Get role
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", member.user_id)
+            .maybeSingle();
+
           return {
             ...member,
             emailCount: count || 0,
+            role: roleData?.role || "member",
           };
         })
       );
 
-      setTeamMembers(membersWithCounts);
+      setTeamMembers(membersWithData);
 
       // Generate invite link (team_id in URL)
       const inviteUrl = `${window.location.origin}/team-setup?invite=${profile.team_id}`;
@@ -81,6 +117,42 @@ export default function Team() {
       toast({
         title: "Failed to copy",
         description: "Please copy the link manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
+
+    try {
+      // Remove team_id from profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ team_id: null })
+        .eq("user_id", memberToRemove.user_id);
+
+      if (profileError) throw profileError;
+
+      // Delete user role
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", memberToRemove.user_id);
+
+      if (roleError) throw roleError;
+
+      toast({
+        title: "Member removed",
+        description: `${memberToRemove.name || memberToRemove.email} has been removed from the team.`,
+      });
+
+      setMemberToRemove(null);
+      loadTeamData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -144,12 +216,14 @@ export default function Team() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Mail className="h-4 w-4" />
                       Emails Sent
                     </div>
                   </TableHead>
+                  {isFounder && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -159,14 +233,33 @@ export default function Team() {
                       {member.name || "Unnamed"}
                     </TableCell>
                     <TableCell>{member.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={member.role === "founder" ? "default" : "secondary"}>
+                        {member.role === "founder" ? "Owner" : "Member"}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right">
                       <span className="font-semibold">{member.emailCount}</span>
                     </TableCell>
+                    {isFounder && (
+                      <TableCell className="text-right">
+                        {member.role !== "founder" && member.user_id !== currentUserId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setMemberToRemove(member)}
+                          >
+                            <UserX className="h-4 w-4 mr-2" />
+                            Remove
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
                 {teamMembers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                    <TableCell colSpan={isFounder ? 5 : 4} className="text-center text-muted-foreground">
                       No team members yet
                     </TableCell>
                   </TableRow>
@@ -176,6 +269,24 @@ export default function Team() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={!!memberToRemove} onOpenChange={(open) => !open && setMemberToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {memberToRemove?.name || memberToRemove?.email} from the team?
+              They will lose access to all team folders and data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveMember}>
+              Remove Member
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

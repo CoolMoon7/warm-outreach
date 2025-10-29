@@ -60,6 +60,13 @@ const TeamSetup = () => {
 
         if (profileError) throw profileError;
 
+        // Assign member role to the new team member
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: user.id, role: "member" });
+
+        if (roleError && roleError.code !== "23505") throw roleError; // Ignore duplicate key error
+
         toast({
           title: "Success!",
           description: "You've joined the team.",
