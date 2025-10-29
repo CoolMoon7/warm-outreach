@@ -4,8 +4,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, Mail, Circle, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { CheckCircle, Mail, Circle, Search, Edit, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { EditContactDialog } from "@/components/EditContactDialog";
 
 export default function Contacts() {
   const { toast } = useToast();
@@ -13,6 +25,9 @@ export default function Contacts() {
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editContactOpen, setEditContactOpen] = useState(false);
+  const [contactToEdit, setContactToEdit] = useState<any>(null);
+  const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
 
   useEffect(() => {
     loadContacts();
@@ -66,6 +81,65 @@ export default function Contacts() {
     setFilteredContacts(filtered);
   };
 
+  const toggleResponded = async (contactId: string, currentStatus: boolean) => {
+    try {
+      const newStatus = !currentStatus;
+      
+      await supabase
+        .from("contacts")
+        .update({ responded: newStatus })
+        .eq("id", contactId);
+
+      await supabase
+        .from("emails")
+        .update({ responded: newStatus })
+        .eq("contact_id", contactId);
+
+      loadContacts();
+      toast({
+        title: "Status updated",
+        description: `Contact marked as ${newStatus ? "responded" : "not responded"}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditContact = (contact: any) => {
+    setContactToEdit(contact);
+    setEditContactOpen(true);
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    try {
+      const { error } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("id", contactId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Contact deleted",
+        description: "The contact has been removed.",
+      });
+
+      loadContacts();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteContactId(null);
+    }
+  };
+
   const getStatusBadge = (contact: any) => {
     if (contact.responded) {
       return (
@@ -103,12 +177,13 @@ export default function Contacts() {
             <TableHead>Location</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Last Contact</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {contactsList.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                 No contacts found
               </TableCell>
             </TableRow>
@@ -145,6 +220,31 @@ export default function Contacts() {
                   {contact.last_contacted_at
                     ? new Date(contact.last_contacted_at).toLocaleDateString()
                     : "-"}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => toggleResponded(contact.id, contact.responded)}
+                    >
+                      {contact.responded ? "Mark Unresponded" : "Mark Responded"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditContact(contact)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setDeleteContactId(contact.id)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
@@ -209,6 +309,32 @@ export default function Contacts() {
           {renderContactsTable(respondedContacts)}
         </TabsContent>
       </Tabs>
+
+      {contactToEdit && (
+        <EditContactDialog
+          open={editContactOpen}
+          onOpenChange={setEditContactOpen}
+          contact={contactToEdit}
+          onContactUpdated={loadContacts}
+        />
+      )}
+
+      <AlertDialog open={!!deleteContactId} onOpenChange={(open) => !open && setDeleteContactId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contact</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this contact? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteContactId && handleDeleteContact(deleteContactId)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
