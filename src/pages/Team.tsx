@@ -188,12 +188,10 @@ export default function Team() {
           <h1 className="text-3xl font-bold mb-2">{teamName}</h1>
           <p className="text-muted-foreground">Manage your team members and track performance</p>
         </div>
-        {!isFounder && (
-          <Button variant="outline" onClick={() => setLeaveOpen(true)}>
-            <UserX className="h-4 w-4 mr-2" />
-            Leave Team
-          </Button>
-        )}
+        <Button variant="outline" onClick={() => setLeaveOpen(true)}>
+          <UserX className="h-4 w-4 mr-2" />
+          Leave Team
+        </Button>
       </div>
 
       <div className="grid gap-6 mb-8">

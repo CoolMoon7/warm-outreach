@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import TeamSetup from "./pages/TeamSetup";
 import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
+import Folders from "./pages/Folders";
 import FolderDetail from "./pages/FolderDetail";
 import Contacts from "./pages/Contacts";
 import Templates from "./pages/Templates";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/team-setup" element={<TeamSetup />} />
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/folders" element={<Folders />} />
             <Route path="/folders/:id" element={<FolderDetail />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/templates" element={<Templates />} />

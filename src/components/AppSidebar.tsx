@@ -14,7 +14,7 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Folders", url: "/dashboard", icon: Folder },
+  { title: "Folders", url: "/folders", icon: Folder },
   { title: "Contacts", url: "/contacts", icon: Users },
   { title: "Templates", url: "/templates", icon: FileText },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
