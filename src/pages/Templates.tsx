@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Trash } from "lucide-react";
+import { Save, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Templates() {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [templates, setTemplates] = useState<any[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
@@ -119,20 +117,10 @@ export default function Templates() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-      </header>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Email Templates</h1>
 
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Email Templates</h1>
-
-        <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>{editing ? "Edit Template" : "Create Template"}</CardTitle>
@@ -221,10 +209,9 @@ export default function Templates() {
                   </p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+          ))}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

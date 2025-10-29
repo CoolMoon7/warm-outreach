@@ -1,29 +1,56 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 const TeamSetup = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    checkTeam();
+  }, []);
+
+  const checkTeam = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("team_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile?.team_id) {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error checking team:", error);
+    }
+  };
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       // Create team
-      const { data: teamData, error: teamError } = await supabase
+      const { data: team, error: teamError } = await supabase
         .from("teams")
-        .insert([{ name: teamName }])
+        .insert({ name: teamName })
         .select()
         .single();
 
@@ -32,23 +59,23 @@ const TeamSetup = () => {
       // Update profile with team_id
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ team_id: teamData.id })
-        .eq("user_id", session.user.id);
+        .update({ team_id: team.id })
+        .eq("user_id", user.id);
 
       if (profileError) throw profileError;
 
-      // Set user as founder
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert([{ user_id: session.user.id, role: "founder" }]);
+      toast({
+        title: "Team created!",
+        description: "Your team has been created successfully.",
+      });
 
-      if (roleError) throw roleError;
-
-      toast.success("Team created successfully!");
       navigate("/dashboard");
     } catch (error: any) {
-      console.error("Error:", error);
-      toast.error(error.message || "Error creating team");
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

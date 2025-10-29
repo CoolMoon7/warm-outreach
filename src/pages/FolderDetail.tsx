@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Mail, CheckCircle, Circle } from "lucide-react";
+import { Mail, CheckCircle, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCSVDialog } from "@/components/UploadCSVDialog";
 import { EmailGeneratorModal } from "@/components/EmailGeneratorModal";
 
 export default function FolderDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [folder, setFolder] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
@@ -107,17 +106,7 @@ export default function FolderDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">{folder?.name}</h1>
           {folder?.description && (
@@ -217,11 +206,11 @@ export default function FolderDetail() {
           </TabsContent>
 
           <TabsContent value="templates">
-            <div className="flex justify-between items-center mb-4">
+            <div className="mb-4">
               <h3 className="text-lg font-semibold">Available Templates</h3>
-              <Button onClick={() => navigate("/templates")}>
-                Create Template
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Use the sidebar to create new templates
+              </p>
             </div>
             <div className="grid gap-4">
               {templates.map((template) => (
@@ -235,7 +224,6 @@ export default function FolderDetail() {
             </div>
           </TabsContent>
         </Tabs>
-      </main>
 
       {selectedContact && selectedTemplate && (
         <EmailGeneratorModal

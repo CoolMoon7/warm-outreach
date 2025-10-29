@@ -5,8 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
 import TeamSetup from "./pages/TeamSetup";
+import DashboardLayout from "./components/DashboardLayout";
+import Dashboard from "./pages/Dashboard";
 import FolderDetail from "./pages/FolderDetail";
 import Templates from "./pages/Templates";
 import Analytics from "./pages/Analytics";
@@ -23,11 +24,13 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/team-setup" element={<TeamSetup />} />
-          <Route path="/folders/:id" element={<FolderDetail />} />
-          <Route path="/templates" element={<Templates />} />
-          <Route path="/analytics" element={<Analytics />} />
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/folders/:id" element={<FolderDetail />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/analytics" element={<Analytics />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
