@@ -34,30 +34,21 @@ export default function Analytics() {
 
       setTemplatePerformance(perfData || []);
 
-      // Get overall stats - first get folder IDs for this team
-      const { data: teamFolders } = await supabase
-        .from("folders")
-        .select("id")
+      // Get overall stats from contacts table (more accurate)
+      const { data: allContacts } = await supabase
+        .from("contacts")
+        .select("responded, last_contacted_at")
         .eq("team_id", profile?.team_id);
-
-      const folderIds = teamFolders?.map((f) => f.id) || [];
-
-      let emails: any[] = [];
-      if (folderIds.length > 0) {
-        const { data: emailsData } = await supabase
-          .from("emails")
-          .select("responded")
-          .in("folder_id", folderIds);
-        emails = emailsData || [];
-      }
 
       const { count: contactCount } = await supabase
         .from("contacts")
         .select("*", { count: "exact", head: true })
         .eq("team_id", profile?.team_id);
 
-      const totalSent = emails.length || 0;
-      const totalResponded = emails.filter((e) => e.responded).length || 0;
+      // Only count contacts that have been sent emails (have last_contacted_at)
+      const sentContacts = allContacts?.filter((c) => c.last_contacted_at) || [];
+      const totalSent = sentContacts.length;
+      const totalResponded = sentContacts.filter((c) => c.responded).length;
 
       setStats({
         totalSent,

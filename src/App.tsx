@@ -12,6 +12,7 @@ import FolderDetail from "./pages/FolderDetail";
 import Contacts from "./pages/Contacts";
 import Templates from "./pages/Templates";
 import Analytics from "./pages/Analytics";
+import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/templates" element={<Templates />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/team" element={<Team />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

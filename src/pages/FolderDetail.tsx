@@ -85,10 +85,19 @@ export default function FolderDetail() {
 
   const toggleResponded = async (contactId: string, currentStatus: boolean) => {
     try {
+      const newStatus = !currentStatus;
+      
+      // Update contact
       await supabase
         .from("contacts")
-        .update({ responded: !currentStatus })
+        .update({ responded: newStatus })
         .eq("id", contactId);
+
+      // Also update all emails for this contact
+      await supabase
+        .from("emails")
+        .update({ responded: newStatus })
+        .eq("contact_id", contactId);
 
       loadData();
     } catch (error: any) {

@@ -1,4 +1,4 @@
-import { Folder, FileText, BarChart3, Home, Users } from "lucide-react";
+import { Folder, FileText, BarChart3, Home, Users, UsersRound } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -18,6 +18,7 @@ const menuItems = [
   { title: "Contacts", url: "/contacts", icon: Users },
   { title: "Templates", url: "/templates", icon: FileText },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Team", url: "/team", icon: UsersRound },
 ];
 
 export function AppSidebar() {

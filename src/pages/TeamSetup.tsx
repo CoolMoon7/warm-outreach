@@ -47,26 +47,44 @@ const TeamSetup = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Create team with a client-generated id to avoid RETURNING (which can be blocked by RLS)
-      const teamId = crypto.randomUUID();
-      const { error: teamError } = await supabase
-        .from("teams")
-        .insert({ id: teamId, name: teamName });
+      // Check if there's an invite code in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteTeamId = urlParams.get("invite");
 
-      if (teamError) throw teamError;
+      if (inviteTeamId) {
+        // Join existing team
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ team_id: inviteTeamId })
+          .eq("user_id", user.id);
 
-      // Update profile with team_id
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ team_id: teamId })
-        .eq("user_id", user.id);
+        if (profileError) throw profileError;
 
-      if (profileError) throw profileError;
+        toast({
+          title: "Success!",
+          description: "You've joined the team.",
+        });
+      } else {
+        // Create new team
+        const teamId = crypto.randomUUID();
+        const { error: teamError } = await supabase
+          .from("teams")
+          .insert({ id: teamId, name: teamName });
 
-      toast({
-        title: "Team created!",
-        description: "Your team has been created successfully.",
-      });
+        if (teamError) throw teamError;
+
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ team_id: teamId })
+          .eq("user_id", user.id);
+
+        if (profileError) throw profileError;
+
+        toast({
+          title: "Team created!",
+          description: "Your team has been created successfully.",
+        });
+      }
 
       navigate("/dashboard");
     } catch (error: any) {
