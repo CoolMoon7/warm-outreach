@@ -166,66 +166,57 @@ export default function Contacts() {
   };
 
   const renderContactsTable = (contactsList: any[]) => (
-    <div className="w-full overflow-x-auto border rounded-lg">
-      <Table className="min-w-[1200px]">
+    <div className="border rounded-lg">
+      <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="min-w-[150px]">Name</TableHead>
-            <TableHead className="min-w-[200px]">Email</TableHead>
-            <TableHead className="min-w-[150px]">Company</TableHead>
-            <TableHead className="min-w-[150px]">Job Title</TableHead>
-            <TableHead className="min-w-[120px]">Status</TableHead>
-            <TableHead className="min-w-[200px]">Actions</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Company</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {contactsList.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                 No contacts found
               </TableCell>
             </TableRow>
           ) : (
             contactsList.map((contact) => (
               <TableRow key={contact.id}>
-                <TableCell className="font-medium">
+                <TableCell className="font-medium">{contact.name}</TableCell>
+                <TableCell>{contact.email}</TableCell>
+                <TableCell>
                   <div>
-                    <div>{contact.name}</div>
-                    {contact.first_name && contact.last_name && (
-                      <div className="text-xs text-muted-foreground">
-                        {contact.first_name} {contact.last_name}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <a href={`mailto:${contact.email}`} className="text-primary hover:underline break-all">
-                    {contact.email}
-                  </a>
-                </TableCell>
-                <TableCell>
-                  <div className="truncate">
                     <div>{contact.company || "-"}</div>
                     {contact.job_title && (
-                      <div className="text-xs text-muted-foreground truncate">{contact.job_title}</div>
+                      <div className="text-xs text-muted-foreground">{contact.job_title}</div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="space-y-1">
-                    {contact.location && (
-                      <div className="text-xs text-muted-foreground truncate">{contact.location}</div>
-                    )}
-                    {contact.last_contacted_at && (
-                      <div className="text-xs text-muted-foreground">
-                        Sent: {new Date(contact.last_contacted_at).toLocaleDateString()}
-                      </div>
-                    )}
-                  </div>
+                  {contact.responded ? (
+                    <Badge className="bg-green-500">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Responded
+                    </Badge>
+                  ) : contact.last_contacted_at ? (
+                    <Badge variant="secondary">
+                      <Mail className="h-3 w-3 mr-1" />
+                      Sent
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline">
+                      <Circle className="h-3 w-3 mr-1" />
+                      Not Sent
+                    </Badge>
+                  )}
                 </TableCell>
-                <TableCell>{getStatusBadge(contact)}</TableCell>
                 <TableCell>
-                  <div className="flex gap-1 flex-wrap">
+                  <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -233,7 +224,7 @@ export default function Contacts() {
                       disabled={!contact.last_contacted_at}
                       title={!contact.last_contacted_at ? "Contact must be marked as sent first" : ""}
                     >
-                      {contact.responded ? "Unresponded" : "Responded"}
+                      {contact.responded ? "Mark Unresponded" : "Mark Responded"}
                     </Button>
                     <Button
                       size="sm"
@@ -289,7 +280,7 @@ export default function Contacts() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
+      <Tabs defaultValue="all">
         <TabsList>
           <TabsTrigger value="all">
             All ({filteredContacts.length})
@@ -302,15 +293,15 @@ export default function Contacts() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-4 w-full">
+        <TabsContent value="all" className="mt-4">
           {renderContactsTable(filteredContacts)}
         </TabsContent>
 
-        <TabsContent value="sent" className="mt-4 w-full">
+        <TabsContent value="sent" className="mt-4">
           {renderContactsTable(sentContacts)}
         </TabsContent>
 
-        <TabsContent value="responded" className="mt-4 w-full">
+        <TabsContent value="responded" className="mt-4">
           {renderContactsTable(respondedContacts)}
         </TabsContent>
       </Tabs>
