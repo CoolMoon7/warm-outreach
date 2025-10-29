@@ -125,7 +125,7 @@ export default function Templates() {
             <CardHeader>
               <CardTitle>{editing ? "Edit Template" : "Create Template"}</CardTitle>
               <CardDescription>
-                Use placeholders: {`{{name}}`}, {`{{email}}`}, {`{{company}}`}
+                Available merge fields: <code className="text-xs bg-muted px-1 py-0.5 rounded">{`{{First Name}}`}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{`{{Last Name}}`}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{`{{Job Title}}`}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{`{{Company Name}}`}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{`{{email}}`}</code>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -143,7 +143,7 @@ export default function Templates() {
                 <Input
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  placeholder="Quick question, {{name}}"
+                  placeholder="Quick question, {{First Name}}"
                 />
               </div>
 
@@ -152,7 +152,7 @@ export default function Templates() {
                 <Textarea
                   value={formData.body_html}
                   onChange={(e) => setFormData({ ...formData, body_html: e.target.value })}
-                  placeholder={`Hi {{name}},\n\nI noticed you're with {{company}}...\n\nBest regards`}
+                  placeholder={`Hi {{First Name}},\n\nI'm a Duke MBA student researching how companies support working parents. Given your role as {{Job Title}} at {{Company Name}}, I'd love to hear your perspective.\n\nBest regards`}
                   rows={10}
                 />
               </div>

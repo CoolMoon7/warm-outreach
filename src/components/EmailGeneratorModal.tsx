@@ -13,8 +13,11 @@ interface EmailGeneratorModalProps {
   contact: {
     id: string;
     name: string;
+    first_name?: string;
+    last_name?: string;
     email: string;
     company: string;
+    job_title?: string;
     folder_id: string;
     linkedin_profile?: string;
   };
@@ -33,6 +36,10 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
 
   const replacePlaceholders = (text: string) => {
     return text
+      .replace(/\{\{First Name\}\}/gi, contact.first_name || contact.name.split(' ')[0] || '')
+      .replace(/\{\{Last Name\}\}/gi, contact.last_name || contact.name.split(' ').slice(1).join(' ') || '')
+      .replace(/\{\{Job Title\}\}/gi, contact.job_title || '')
+      .replace(/\{\{Company Name\}\}/gi, contact.company || '')
       .replace(/\{\{name\}\}/g, contact.name)
       .replace(/\{\{email\}\}/g, contact.email)
       .replace(/\{\{company\}\}/g, contact.company);
