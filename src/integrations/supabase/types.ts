@@ -32,6 +32,7 @@ export type Database = {
           location: string | null
           name: string
           responded: boolean | null
+          role: string | null
           team_id: string
         }
         Insert: {
@@ -51,6 +52,7 @@ export type Database = {
           location?: string | null
           name: string
           responded?: boolean | null
+          role?: string | null
           team_id: string
         }
         Update: {
@@ -70,6 +72,7 @@ export type Database = {
           location?: string | null
           name?: string
           responded?: boolean | null
+          role?: string | null
           team_id?: string
         }
         Relationships: [

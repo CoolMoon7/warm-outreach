@@ -1,18 +1,30 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, CheckCircle, Circle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Mail, CheckCircle, Circle, Trash, Edit, FolderX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCSVDialog } from "@/components/UploadCSVDialog";
 import { EmailGeneratorModal } from "@/components/EmailGeneratorModal";
+import { EditContactDialog } from "@/components/EditContactDialog";
 
 export default function FolderDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [folder, setFolder] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
@@ -20,6 +32,10 @@ export default function FolderDetail() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [editContactOpen, setEditContactOpen] = useState(false);
+  const [contactToEdit, setContactToEdit] = useState<any>(null);
+  const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
+  const [deleteFolderOpen, setDeleteFolderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -97,6 +113,64 @@ export default function FolderDetail() {
     setEmailModalOpen(true);
   };
 
+  const handleDeleteContact = async (contactId: string) => {
+    try {
+      const { error } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("id", contactId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Contact deleted",
+        description: "The contact has been removed.",
+      });
+
+      loadData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteContactId(null);
+    }
+  };
+
+  const handleDeleteFolder = async () => {
+    try {
+      // Delete folder (contacts will be handled by cascade delete if set up)
+      const { error } = await supabase
+        .from("folders")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Folder deleted",
+        description: "The folder and all its contents have been removed.",
+      });
+
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteFolderOpen(false);
+    }
+  };
+
+  const handleEditContact = (contact: any) => {
+    setContactToEdit(contact);
+    setEditContactOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -107,11 +181,21 @@ export default function FolderDetail() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">{folder?.name}</h1>
-          {folder?.description && (
-            <p className="text-muted-foreground mt-1">{folder.description}</p>
-          )}
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold">{folder?.name}</h1>
+            {folder?.description && (
+              <p className="text-muted-foreground mt-1">{folder.description}</p>
+            )}
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setDeleteFolderOpen(true)}
+          >
+            <FolderX className="h-4 w-4 mr-2" />
+            Delete Folder
+          </Button>
         </div>
 
         <Tabs defaultValue="contacts">
@@ -196,6 +280,20 @@ export default function FolderDetail() {
                           >
                             {contact.responded ? "Mark Unresponded" : "Mark Responded"}
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditContact(contact)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setDeleteContactId(contact.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -234,6 +332,49 @@ export default function FolderDetail() {
           onEmailSent={loadData}
         />
       )}
+
+      {contactToEdit && (
+        <EditContactDialog
+          open={editContactOpen}
+          onOpenChange={setEditContactOpen}
+          contact={contactToEdit}
+          onContactUpdated={loadData}
+        />
+      )}
+
+      <AlertDialog open={!!deleteContactId} onOpenChange={(open) => !open && setDeleteContactId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contact</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this contact? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteContactId && handleDeleteContact(deleteContactId)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteFolderOpen} onOpenChange={setDeleteFolderOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this folder? All contacts within this folder will also be deleted. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive text-destructive-foreground">
+              Delete Folder
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

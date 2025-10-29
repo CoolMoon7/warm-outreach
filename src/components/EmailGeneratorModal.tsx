@@ -16,6 +16,7 @@ interface EmailGeneratorModalProps {
     email: string;
     company: string;
     folder_id: string;
+    linkedin_profile?: string;
   };
   template: {
     id: string;
@@ -98,6 +99,31 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
         </DialogHeader>
         
         <div className="space-y-4">
+          {contact.linkedin_profile && (
+            <div className="space-y-2">
+              <Label>LinkedIn Profile</Label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 p-2 bg-muted rounded-md text-sm truncate">
+                  <a 
+                    href={contact.linkedin_profile} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {contact.linkedin_profile}
+                  </a>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.open(contact.linkedin_profile, '_blank')}
+                >
+                  Open Profile
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>To</Label>
             <div className="flex items-center gap-2">
