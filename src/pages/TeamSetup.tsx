@@ -67,6 +67,17 @@ const TeamSetup = () => {
 
         if (roleError && roleError.code !== "23505") throw roleError; // Ignore duplicate key error
 
+        // Verify the update completed before navigating
+        const { data: verifyProfile } = await supabase
+          .from("profiles")
+          .select("team_id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (!verifyProfile?.team_id) {
+          throw new Error("Failed to join team. Please try again.");
+        }
+
         toast({
           title: "Success!",
           description: "You've joined the team.",
@@ -87,12 +98,26 @@ const TeamSetup = () => {
 
         if (profileError) throw profileError;
 
+        // Verify the update completed before navigating
+        const { data: verifyProfile } = await supabase
+          .from("profiles")
+          .select("team_id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (!verifyProfile?.team_id) {
+          throw new Error("Failed to create team. Please try again.");
+        }
+
         toast({
           title: "Team created!",
           description: "Your team has been created successfully.",
         });
       }
 
+      // Small delay to ensure all async operations complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       navigate("/dashboard");
     } catch (error: any) {
       toast({

@@ -14,7 +14,10 @@ export default function DashboardLayout() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
+    const initAuth = async () => {
+      await checkAuth();
+    };
+    initAuth();
   }, []);
 
   const checkAuth = async () => {
