@@ -47,6 +47,26 @@ const TeamSetup = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Ensure profile exists (safety net in case trigger didn't fire)
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        // Create profile if it doesn't exist
+        const { error: createProfileError } = await supabase
+          .from("profiles")
+          .insert({
+            user_id: user.id,
+            email: user.email!,
+            name: user.user_metadata?.name || user.email!,
+          });
+
+        if (createProfileError) throw createProfileError;
+      }
+
       // Check if there's an invite code in URL
       const urlParams = new URLSearchParams(window.location.search);
       const inviteTeamId = urlParams.get("invite");
@@ -67,17 +87,6 @@ const TeamSetup = () => {
 
         if (roleError && roleError.code !== "23505") throw roleError; // Ignore duplicate key error
 
-        // Verify the update completed before navigating
-        const { data: verifyProfile } = await supabase
-          .from("profiles")
-          .select("team_id")
-          .eq("user_id", user.id)
-          .single();
-
-        if (!verifyProfile?.team_id) {
-          throw new Error("Failed to join team. Please try again.");
-        }
-
         toast({
           title: "Success!",
           description: "You've joined the team.",
@@ -97,17 +106,6 @@ const TeamSetup = () => {
           .eq("user_id", user.id);
 
         if (profileError) throw profileError;
-
-        // Verify the update completed before navigating
-        const { data: verifyProfile } = await supabase
-          .from("profiles")
-          .select("team_id")
-          .eq("user_id", user.id)
-          .single();
-
-        if (!verifyProfile?.team_id) {
-          throw new Error("Failed to create team. Please try again.");
-        }
 
         toast({
           title: "Team created!",
