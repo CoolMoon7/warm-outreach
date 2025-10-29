@@ -17,39 +17,57 @@ export type Database = {
       contacts: {
         Row: {
           company: string | null
+          company_domain: string | null
           created_at: string | null
           email: string
+          first_name: string | null
           folder_id: string
           id: string
+          job_title: string | null
           last_contacted_at: string | null
+          last_name: string | null
           last_sender_id: string | null
           last_template_id: string | null
+          linkedin_profile: string | null
+          location: string | null
           name: string
           responded: boolean | null
           team_id: string
         }
         Insert: {
           company?: string | null
+          company_domain?: string | null
           created_at?: string | null
           email: string
+          first_name?: string | null
           folder_id: string
           id?: string
+          job_title?: string | null
           last_contacted_at?: string | null
+          last_name?: string | null
           last_sender_id?: string | null
           last_template_id?: string | null
+          linkedin_profile?: string | null
+          location?: string | null
           name: string
           responded?: boolean | null
           team_id: string
         }
         Update: {
           company?: string | null
+          company_domain?: string | null
           created_at?: string | null
           email?: string
+          first_name?: string | null
           folder_id?: string
           id?: string
+          job_title?: string | null
           last_contacted_at?: string | null
+          last_name?: string | null
           last_sender_id?: string | null
           last_template_id?: string | null
+          linkedin_profile?: string | null
+          location?: string | null
           name?: string
           responded?: boolean | null
           team_id?: string

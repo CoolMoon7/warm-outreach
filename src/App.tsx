@@ -9,6 +9,7 @@ import TeamSetup from "./pages/TeamSetup";
 import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import FolderDetail from "./pages/FolderDetail";
+import Contacts from "./pages/Contacts";
 import Templates from "./pages/Templates";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ const App = () => (
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/folders/:id" element={<FolderDetail />} />
+            <Route path="/contacts" element={<Contacts />} />
             <Route path="/templates" element={<Templates />} />
             <Route path="/analytics" element={<Analytics />} />
           </Route>

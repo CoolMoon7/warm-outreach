@@ -43,18 +43,30 @@ export const UploadCSVDialog = ({ folderId, onUploadComplete }: UploadCSVDialogP
           const contacts = results.data.map((row: any) => ({
             folder_id: folderId,
             team_id: profile.team_id,
-            name: row.name || row.Name || "",
-            email: row.email || row.Email || "",
-            company: row.company || row.Company || "",
-          }));
+            name: row["Full Name"] || row.name || row.Name || `${row["First Name"] || ""} ${row["Last Name"] || ""}`.trim(),
+            first_name: row["First Name"] || row.first_name || "",
+            last_name: row["Last Name"] || row.last_name || "",
+            email: row["Work Email"] || row.email || row.Email || "",
+            company: row["Company Name"] || row.company || row.Company || "",
+            company_domain: row["Company Domain"] || row.company_domain || "",
+            job_title: row["Job Title"] || row.job_title || "",
+            location: row.Location || row.location || "",
+            linkedin_profile: row["LinkedIn Profile"] || row.linkedin_profile || "",
+          })).filter((contact: any) => contact.email); // Only include contacts with email
 
-          const { error } = await supabase.from("contacts").insert(contacts);
+          // Insert contacts with upsert to handle duplicates
+          const { error } = await supabase
+            .from("contacts")
+            .upsert(contacts, { 
+              onConflict: "email,team_id",
+              ignoreDuplicates: true 
+            });
 
           if (error) throw error;
 
           toast({
             title: "Contacts imported",
-            description: `Successfully imported ${contacts.length} contacts.`,
+            description: `Successfully imported ${contacts.length} contacts. Duplicates were skipped.`,
           });
 
           setOpen(false);
@@ -101,9 +113,17 @@ export const UploadCSVDialog = ({ folderId, onUploadComplete }: UploadCSVDialogP
               disabled={loading}
             />
           </div>
-          <p className="text-sm text-muted-foreground">
-            Make sure your CSV includes: name, email, and company columns
-          </p>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p className="font-semibold">Supported CSV columns:</p>
+            <ul className="list-disc list-inside text-xs space-y-0.5">
+              <li>Full Name, First Name, Last Name</li>
+              <li>Work Email (required)</li>
+              <li>Company Name, Company Domain</li>
+              <li>Job Title, Location</li>
+              <li>LinkedIn Profile</li>
+            </ul>
+            <p className="text-xs mt-2">Duplicate contacts (same email) will be automatically skipped.</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
