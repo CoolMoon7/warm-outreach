@@ -107,6 +107,13 @@ const TeamSetup = () => {
 
         if (profileError) throw profileError;
 
+        // Assign founder role to the team creator
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: user.id, role: "founder" });
+
+        if (roleError && roleError.code !== "23505") throw roleError; // Ignore duplicate key error
+
         toast({
           title: "Team created!",
           description: "Your team has been created successfully.",
