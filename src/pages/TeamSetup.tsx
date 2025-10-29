@@ -47,19 +47,18 @@ const TeamSetup = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Create team
-      const { data: team, error: teamError } = await supabase
+      // Create team with a client-generated id to avoid RETURNING (which can be blocked by RLS)
+      const teamId = crypto.randomUUID();
+      const { error: teamError } = await supabase
         .from("teams")
-        .insert({ name: teamName })
-        .select()
-        .single();
+        .insert({ id: teamId, name: teamName });
 
       if (teamError) throw teamError;
 
       // Update profile with team_id
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ team_id: team.id })
+        .update({ team_id: teamId })
         .eq("user_id", user.id);
 
       if (profileError) throw profileError;
