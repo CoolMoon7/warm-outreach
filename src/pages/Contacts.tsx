@@ -166,24 +166,22 @@ export default function Contacts() {
   };
 
   const renderContactsTable = (contactsList: any[]) => (
-    <div className="border rounded-lg">
+    <div className="border rounded-lg overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Company</TableHead>
-            <TableHead>Job Title</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Last Contact</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="min-w-[150px]">Name</TableHead>
+            <TableHead className="min-w-[200px]">Email</TableHead>
+            <TableHead className="min-w-[150px]">Company</TableHead>
+            <TableHead className="min-w-[150px]">Job Title</TableHead>
+            <TableHead className="min-w-[120px]">Status</TableHead>
+            <TableHead className="min-w-[200px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {contactsList.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                 No contacts found
               </TableCell>
             </TableRow>
@@ -201,34 +199,41 @@ export default function Contacts() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
+                  <a href={`mailto:${contact.email}`} className="text-primary hover:underline break-all">
                     {contact.email}
                   </a>
                 </TableCell>
                 <TableCell>
-                  <div>
-                    <div>{contact.company}</div>
-                    {contact.company_domain && (
-                      <div className="text-xs text-muted-foreground">{contact.company_domain}</div>
+                  <div className="truncate">
+                    <div>{contact.company || "-"}</div>
+                    {contact.job_title && (
+                      <div className="text-xs text-muted-foreground truncate">{contact.job_title}</div>
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="max-w-[200px] truncate">{contact.job_title || "-"}</TableCell>
-                <TableCell className="max-w-[150px] truncate">{contact.location || "-"}</TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    {contact.location && (
+                      <div className="text-xs text-muted-foreground truncate">{contact.location}</div>
+                    )}
+                    {contact.last_contacted_at && (
+                      <div className="text-xs text-muted-foreground">
+                        Sent: {new Date(contact.last_contacted_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{getStatusBadge(contact)}</TableCell>
                 <TableCell>
-                  {contact.last_contacted_at
-                    ? new Date(contact.last_contacted_at).toLocaleDateString()
-                    : "-"}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 flex-wrap">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => toggleResponded(contact.id, contact.responded)}
+                      disabled={!contact.last_contacted_at}
+                      title={!contact.last_contacted_at ? "Contact must be marked as sent first" : ""}
                     >
-                      {contact.responded ? "Mark Unresponded" : "Mark Responded"}
+                      {contact.responded ? "Unresponded" : "Responded"}
                     </Button>
                     <Button
                       size="sm"
