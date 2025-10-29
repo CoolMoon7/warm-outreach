@@ -271,7 +271,7 @@ export default function Contacts() {
   const respondedContacts = filteredContacts.filter((c) => c.responded);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-full overflow-hidden">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Contacts</h1>
         <p className="text-muted-foreground">Manage all your outreach contacts</p>
