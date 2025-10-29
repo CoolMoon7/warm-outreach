@@ -14,16 +14,322 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          email: string
+          folder_id: string
+          id: string
+          last_contacted_at: string | null
+          last_sender_id: string | null
+          last_template_id: string | null
+          name: string
+          responded: boolean | null
+          team_id: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          email: string
+          folder_id: string
+          id?: string
+          last_contacted_at?: string | null
+          last_sender_id?: string | null
+          last_template_id?: string | null
+          name: string
+          responded?: boolean | null
+          team_id: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          folder_id?: string
+          id?: string
+          last_contacted_at?: string | null
+          last_sender_id?: string | null
+          last_template_id?: string | null
+          name?: string
+          responded?: boolean | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_last_template_id_fkey"
+            columns: ["last_template_id"]
+            isOneToOne: false
+            referencedRelation: "template_performance"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "contacts_last_template_id_fkey"
+            columns: ["last_template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emails: {
+        Row: {
+          contact_id: string
+          created_at: string | null
+          folder_id: string
+          id: string
+          notes: string | null
+          responded: boolean | null
+          sender_id: string
+          sent_at: string | null
+          template_id: string | null
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string | null
+          folder_id: string
+          id?: string
+          notes?: string | null
+          responded?: boolean | null
+          sender_id: string
+          sent_at?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string | null
+          folder_id?: string
+          id?: string
+          notes?: string | null
+          responded?: boolean | null
+          sender_id?: string
+          sent_at?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emails_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emails_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "template_performance"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "emails_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          csv_file_path: string | null
+          description: string | null
+          id: string
+          name: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          csv_file_path?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          csv_file_path?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string | null
+          team_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          name?: string | null
+          team_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          team_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      templates: {
+        Row: {
+          body_html: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          subject: string
+          team_id: string
+        }
+        Insert: {
+          body_html: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          subject: string
+          team_id: string
+        }
+        Update: {
+          body_html?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          subject?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      template_performance: {
+        Row: {
+          responded_count: number | null
+          response_rate: number | null
+          team_id: string | null
+          template_id: string | null
+          template_name: string | null
+          total_sent: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "founder" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +456,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["founder", "member"],
+    },
   },
 } as const
