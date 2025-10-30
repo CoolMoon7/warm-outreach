@@ -78,7 +78,7 @@ const Folders = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-foreground">Folders</h2>
+          <h2 className="text-3xl font-bold text-foreground">Marketing</h2>
           <p className="text-muted-foreground mt-1">Manage your outreach campaigns</p>
         </div>
         <CreateFolderDialog onFolderCreated={loadFolders} />
