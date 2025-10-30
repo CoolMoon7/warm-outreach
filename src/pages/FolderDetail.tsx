@@ -16,8 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, CheckCircle, Circle, Trash, Edit, FolderX } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Mail, CheckCircle, Circle, Trash, Edit, FolderX, Undo } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 import { UploadCSVDialog } from "@/components/UploadCSVDialog";
 import { EmailGeneratorModal } from "@/components/EmailGeneratorModal";
 import { EditContactDialog } from "@/components/EditContactDialog";
@@ -25,7 +25,6 @@ import { EditContactDialog } from "@/components/EditContactDialog";
 export default function FolderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [folder, setFolder] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
@@ -73,10 +72,8 @@ export default function FolderDetail() {
       setContacts(contactsData || []);
       setTemplates(templatesData || []);
     } catch (error: any) {
-      toast({
-        title: "Error",
+      sonnerToast.error("Error", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -101,25 +98,79 @@ export default function FolderDetail() {
 
       loadData();
     } catch (error: any) {
-      toast({
-        title: "Error",
+      sonnerToast.error("Error", {
         description: error.message,
-        variant: "destructive",
       });
     }
   };
 
   const handleGenerateEmail = (contact: any) => {
     if (!selectedTemplate) {
-      toast({
-        title: "No template selected",
+      sonnerToast.error("No template selected", {
         description: "Please select a template first",
-        variant: "destructive",
       });
       return;
     }
     setSelectedContact(contact);
     setEmailModalOpen(true);
+  };
+
+  const handleUndoSend = async (contactId: string) => {
+    try {
+      // Get all emails for this contact, sorted by sent date
+      const { data: emails } = await supabase
+        .from("emails")
+        .select("*")
+        .eq("contact_id", contactId)
+        .order("sent_at", { ascending: false });
+
+      if (!emails || emails.length === 0) {
+        sonnerToast.error("No sent emails found for this contact");
+        return;
+      }
+
+      // Get the most recent email
+      const mostRecentEmail = emails[0];
+
+      // Delete the most recent email
+      await supabase
+        .from("emails")
+        .delete()
+        .eq("id", mostRecentEmail.id);
+
+      // Check if there are any remaining emails
+      const remainingEmails = emails.slice(1);
+
+      if (remainingEmails.length > 0) {
+        // Set contact state to the previous email
+        const previousEmail = remainingEmails[0];
+        await supabase
+          .from("contacts")
+          .update({
+            last_contacted_at: previousEmail.sent_at,
+            last_template_id: previousEmail.template_id,
+            last_sender_id: previousEmail.sender_id,
+          })
+          .eq("id", contactId);
+      } else {
+        // No remaining emails, clear the contact state
+        await supabase
+          .from("contacts")
+          .update({
+            last_contacted_at: null,
+            last_template_id: null,
+            last_sender_id: null,
+          })
+          .eq("id", contactId);
+      }
+
+      sonnerToast.success("Email send undone");
+      loadData();
+    } catch (error: any) {
+      sonnerToast.error("Failed to undo send", {
+        description: error.message,
+      });
+    }
   };
 
   const handleDeleteContact = async (contactId: string) => {
@@ -131,17 +182,14 @@ export default function FolderDetail() {
 
       if (error) throw error;
 
-      toast({
-        title: "Contact deleted",
+      sonnerToast.success("Contact deleted", {
         description: "The contact has been removed.",
       });
 
       loadData();
     } catch (error: any) {
-      toast({
-        title: "Error",
+      sonnerToast.error("Error", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setDeleteContactId(null);
@@ -158,17 +206,14 @@ export default function FolderDetail() {
 
       if (error) throw error;
 
-      toast({
-        title: "Folder deleted",
+      sonnerToast.success("Folder deleted", {
         description: "The folder and all its contents have been removed.",
       });
 
       navigate("/dashboard");
     } catch (error: any) {
-      toast({
-        title: "Error",
+      sonnerToast.error("Error", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setDeleteFolderOpen(false);
@@ -282,6 +327,16 @@ export default function FolderDetail() {
                           >
                             Generate Email
                           </Button>
+                          {contact.last_contacted_at && !contact.responded && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUndoSend(contact.id)}
+                            >
+                              <Undo className="h-4 w-4 mr-1" />
+                              Undo Send
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
