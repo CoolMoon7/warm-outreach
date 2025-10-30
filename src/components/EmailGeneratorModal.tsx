@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Copy, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface EmailGeneratorModalProps {
@@ -32,7 +32,6 @@ interface EmailGeneratorModalProps {
 export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onEmailSent }: EmailGeneratorModalProps) => {
   const [copied, setCopied] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const { toast } = useToast();
 
   const replacePlaceholders = (text: string) => {
     return text
@@ -60,14 +59,35 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      await supabase.from("emails").insert({
-        contact_id: contact.id,
-        template_id: template.id,
-        folder_id: contact.folder_id,
-        sender_id: user.id,
-        sent_at: new Date().toISOString(),
-      });
+      // Get current contact values to restore if undone
+      const { data: currentContact } = await supabase
+        .from("contacts")
+        .select("last_contacted_at, last_template_id, last_sender_id")
+        .eq("id", contact.id)
+        .single();
 
+      const previousValues = {
+        last_contacted_at: currentContact?.last_contacted_at || null,
+        last_template_id: currentContact?.last_template_id || null,
+        last_sender_id: currentContact?.last_sender_id || null,
+      };
+
+      // Insert email record
+      const { data: emailRecord, error: emailError } = await supabase
+        .from("emails")
+        .insert({
+          contact_id: contact.id,
+          template_id: template.id,
+          folder_id: contact.folder_id,
+          sender_id: user.id,
+          sent_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (emailError) throw emailError;
+
+      // Update contact
       await supabase
         .from("contacts")
         .update({
@@ -77,18 +97,42 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
         })
         .eq("id", contact.id);
 
-      toast({
-        title: "Email marked as sent",
+      // Show toast with undo action
+      sonnerToast.success("Email marked as sent", {
         description: "The email has been logged successfully.",
+        duration: 8000,
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            try {
+              // Delete the email record
+              await supabase
+                .from("emails")
+                .delete()
+                .eq("id", emailRecord.id);
+
+              // Restore previous contact values
+              await supabase
+                .from("contacts")
+                .update(previousValues)
+                .eq("id", contact.id);
+
+              sonnerToast.success("Email send undone");
+              onEmailSent(); // Refresh the data
+            } catch (error: any) {
+              sonnerToast.error("Failed to undo", {
+                description: error.message,
+              });
+            }
+          },
+        },
       });
 
       onEmailSent();
       onOpenChange(false);
     } catch (error: any) {
-      toast({
-        title: "Error",
+      sonnerToast.error("Error", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setSending(false);
