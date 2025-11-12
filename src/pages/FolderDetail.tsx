@@ -7,6 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -16,11 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, CheckCircle, Circle, Trash, Edit, FolderX, Undo } from "lucide-react";
+import { Mail, CheckCircle, Circle, Trash, Edit, FolderX, Undo, Phone, Users, Briefcase, DollarSign, ChevronDown } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { UploadCSVDialog } from "@/components/UploadCSVDialog";
 import { EmailGeneratorModal } from "@/components/EmailGeneratorModal";
 import { EditContactDialog } from "@/components/EditContactDialog";
+
+type ContactStatus = 'not_sent' | 'sent' | 'responded' | 'called' | 'met_in_person' | 'pitched' | 'closed';
 
 export default function FolderDetail() {
   const { id } = useParams();
@@ -36,6 +44,7 @@ export default function FolderDetail() {
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
   const [deleteFolderOpen, setDeleteFolderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
   useEffect(() => {
     loadData();
@@ -80,28 +89,67 @@ export default function FolderDetail() {
     }
   };
 
-  const toggleResponded = async (contactId: string, currentStatus: boolean) => {
+  const updateContactStatus = async (contactId: string, newStatus: ContactStatus) => {
     try {
-      const newStatus = !currentStatus;
-      
-      // Update contact
       await supabase
         .from("contacts")
-        .update({ responded: newStatus })
+        .update({ 
+          status: newStatus,
+          responded: newStatus === 'responded'
+        })
         .eq("id", contactId);
 
-      // Also update all emails for this contact
-      await supabase
-        .from("emails")
-        .update({ responded: newStatus })
-        .eq("contact_id", contactId);
+      if (newStatus === 'responded') {
+        await supabase
+          .from("emails")
+          .update({ responded: true })
+          .eq("contact_id", contactId);
+      }
 
       loadData();
+      sonnerToast.success("Status updated", {
+        description: `Contact status changed to ${getStatusLabel(newStatus)}.`,
+      });
     } catch (error: any) {
       sonnerToast.error("Error", {
         description: error.message,
       });
     }
+  };
+
+  const getStatusLabel = (status: ContactStatus) => {
+    const labels: Record<ContactStatus, string> = {
+      not_sent: 'Not Sent',
+      sent: 'Sent',
+      responded: 'Responded',
+      called: 'Called',
+      met_in_person: 'Met in Person',
+      pitched: 'Pitched',
+      closed: 'Closed'
+    };
+    return labels[status];
+  };
+
+  const getStatusBadge = (status: ContactStatus) => {
+    const statusConfig: Record<ContactStatus, { icon: any, className: string, label: string }> = {
+      not_sent: { icon: Circle, className: 'bg-gray-500', label: 'Not Sent' },
+      sent: { icon: Mail, className: 'bg-blue-500', label: 'Sent' },
+      responded: { icon: CheckCircle, className: 'bg-green-500', label: 'Responded' },
+      called: { icon: Phone, className: 'bg-purple-500', label: 'Called' },
+      met_in_person: { icon: Users, className: 'bg-orange-500', label: 'Met in Person' },
+      pitched: { icon: Briefcase, className: 'bg-yellow-500', label: 'Pitched' },
+      closed: { icon: DollarSign, className: 'bg-emerald-600', label: 'Closed' }
+    };
+
+    const config = statusConfig[status];
+    const Icon = config.icon;
+
+    return (
+      <Badge className={config.className}>
+        <Icon className="h-3 w-3 mr-1" />
+        {config.label}
+      </Badge>
+    );
   };
 
   const handleGenerateEmail = (contact: any) => {
@@ -277,96 +325,140 @@ export default function FolderDetail() {
               <UploadCSVDialog folderId={id!} onUploadComplete={loadData} />
             </div>
 
-            <div className="border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Job Title</TableHead>
-                    <TableHead>Last Contacted</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contacts.map((contact) => (
-                    <TableRow key={contact.id}>
-                      <TableCell className="font-medium">{contact.name}</TableCell>
-                      <TableCell>{contact.email}</TableCell>
-                      <TableCell>{contact.company || "-"}</TableCell>
-                      <TableCell>{contact.job_title || "-"}</TableCell>
-                      <TableCell>
-                        {contact.last_contacted_at
-                          ? new Date(contact.last_contacted_at).toLocaleDateString()
-                          : "Never"}
-                      </TableCell>
-                      <TableCell>
-                        {contact.responded ? (
-                          <Badge className="bg-green-500">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Responded
-                          </Badge>
-                        ) : contact.last_contacted_at ? (
-                          <Badge variant="secondary">
-                            <Mail className="h-3 w-3 mr-1" />
-                            Sent
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">
-                            <Circle className="h-3 w-3 mr-1" />
-                            Not Sent
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleGenerateEmail(contact)}
-                            disabled={!selectedTemplate}
-                          >
-                            Generate Email
-                          </Button>
-                          {contact.last_contacted_at && !contact.responded && (
+            <Tabs value={selectedStatus} onValueChange={setSelectedStatus}>
+              <TabsList className="mb-4 flex-wrap h-auto">
+                <TabsTrigger value="all">
+                  All ({contacts.length})
+                </TabsTrigger>
+                <TabsTrigger value="not_sent">
+                  Not Sent ({contacts.filter((c) => c.status === 'not_sent').length})
+                </TabsTrigger>
+                <TabsTrigger value="sent">
+                  Sent ({contacts.filter((c) => c.status === 'sent').length})
+                </TabsTrigger>
+                <TabsTrigger value="responded">
+                  Responded ({contacts.filter((c) => c.status === 'responded').length})
+                </TabsTrigger>
+                <TabsTrigger value="called">
+                  Called ({contacts.filter((c) => c.status === 'called').length})
+                </TabsTrigger>
+                <TabsTrigger value="met_in_person">
+                  Met in Person ({contacts.filter((c) => c.status === 'met_in_person').length})
+                </TabsTrigger>
+                <TabsTrigger value="pitched">
+                  Pitched ({contacts.filter((c) => c.status === 'pitched').length})
+                </TabsTrigger>
+                <TabsTrigger value="closed">
+                  Closed ({contacts.filter((c) => c.status === 'closed').length})
+                </TabsTrigger>
+              </TabsList>
+
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Job Title</TableHead>
+                      <TableHead>Last Contacted</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contacts
+                      .filter((c) => selectedStatus === 'all' || c.status === selectedStatus)
+                      .map((contact) => (
+                      <TableRow key={contact.id}>
+                        <TableCell className="font-medium">{contact.name}</TableCell>
+                        <TableCell>{contact.email}</TableCell>
+                        <TableCell>{contact.company || "-"}</TableCell>
+                        <TableCell>{contact.job_title || "-"}</TableCell>
+                        <TableCell>
+                          {contact.last_contacted_at
+                            ? new Date(contact.last_contacted_at).toLocaleDateString()
+                            : "Never"}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(contact.status || 'not_sent')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleGenerateEmail(contact)}
+                              disabled={!selectedTemplate}
+                            >
+                              Generate Email
+                            </Button>
+                            {contact.last_contacted_at && contact.status === 'sent' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleUndoSend(contact.id)}
+                              >
+                                <Undo className="h-4 w-4 mr-1" />
+                                Undo Send
+                              </Button>
+                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={!contact.last_contacted_at}
+                                  title={!contact.last_contacted_at ? "Contact must be sent first" : ""}
+                                >
+                                  Change Status
+                                  <ChevronDown className="h-4 w-4 ml-1" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'responded')}>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Responded
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'called')}>
+                                  <Phone className="h-4 w-4 mr-2" />
+                                  Called
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'met_in_person')}>
+                                  <Users className="h-4 w-4 mr-2" />
+                                  Met in Person
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'pitched')}>
+                                  <Briefcase className="h-4 w-4 mr-2" />
+                                  Pitched
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'closed')}>
+                                  <DollarSign className="h-4 w-4 mr-2" />
+                                  Closed
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleUndoSend(contact.id)}
+                              onClick={() => handleEditContact(contact)}
                             >
-                              <Undo className="h-4 w-4 mr-1" />
-                              Undo Send
+                              <Edit className="h-4 w-4" />
                             </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleResponded(contact.id, contact.responded)}
-                          >
-                            {contact.responded ? "Mark Unresponded" : "Mark Responded"}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditContact(contact)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setDeleteContactId(contact.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeleteContactId(contact.id)}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="templates">

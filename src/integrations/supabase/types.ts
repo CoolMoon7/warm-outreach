@@ -33,6 +33,7 @@ export type Database = {
           name: string
           responded: boolean | null
           role: string | null
+          status: Database["public"]["Enums"]["contact_status"] | null
           team_id: string
         }
         Insert: {
@@ -53,6 +54,7 @@ export type Database = {
           name: string
           responded?: boolean | null
           role?: string | null
+          status?: Database["public"]["Enums"]["contact_status"] | null
           team_id: string
         }
         Update: {
@@ -73,6 +75,7 @@ export type Database = {
           name?: string
           responded?: boolean | null
           role?: string | null
+          status?: Database["public"]["Enums"]["contact_status"] | null
           team_id?: string
         }
         Relationships: [
@@ -364,6 +367,14 @@ export type Database = {
     }
     Enums: {
       app_role: "founder" | "member"
+      contact_status:
+        | "not_sent"
+        | "sent"
+        | "responded"
+        | "called"
+        | "met_in_person"
+        | "pitched"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -492,6 +503,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["founder", "member"],
+      contact_status: [
+        "not_sent",
+        "sent",
+        "responded",
+        "called",
+        "met_in_person",
+        "pitched",
+        "closed",
+      ],
     },
   },
 } as const

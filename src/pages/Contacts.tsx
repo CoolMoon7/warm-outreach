@@ -15,9 +15,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle, Mail, Circle, Search, Edit, Trash, Undo } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CheckCircle, Mail, Circle, Search, Edit, Trash, Undo, Phone, Users, Briefcase, DollarSign, ChevronDown } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { EditContactDialog } from "@/components/EditContactDialog";
+
+type ContactStatus = 'not_sent' | 'sent' | 'responded' | 'called' | 'met_in_person' | 'pitched' | 'closed';
 
 export default function Contacts() {
   const [contacts, setContacts] = useState<any[]>([]);
@@ -88,29 +96,45 @@ export default function Contacts() {
     setFilteredContacts(sorted);
   };
 
-  const toggleResponded = async (contactId: string, currentStatus: boolean) => {
+  const updateContactStatus = async (contactId: string, newStatus: ContactStatus) => {
     try {
-      const newStatus = !currentStatus;
-      
       await supabase
         .from("contacts")
-        .update({ responded: newStatus })
+        .update({ 
+          status: newStatus,
+          responded: newStatus === 'responded'
+        })
         .eq("id", contactId);
 
-      await supabase
-        .from("emails")
-        .update({ responded: newStatus })
-        .eq("contact_id", contactId);
+      if (newStatus === 'responded') {
+        await supabase
+          .from("emails")
+          .update({ responded: true })
+          .eq("contact_id", contactId);
+      }
 
       loadContacts();
       sonnerToast.success("Status updated", {
-        description: `Contact marked as ${newStatus ? "responded" : "not responded"}.`,
+        description: `Contact status changed to ${getStatusLabel(newStatus)}.`,
       });
     } catch (error: any) {
       sonnerToast.error("Error", {
         description: error.message,
       });
     }
+  };
+
+  const getStatusLabel = (status: ContactStatus) => {
+    const labels: Record<ContactStatus, string> = {
+      not_sent: 'Not Sent',
+      sent: 'Sent',
+      responded: 'Responded',
+      called: 'Called',
+      met_in_person: 'Met in Person',
+      pitched: 'Pitched',
+      closed: 'Closed'
+    };
+    return labels[status];
   };
 
   const handleUndoSend = async (contactId: string) => {
@@ -199,27 +223,24 @@ export default function Contacts() {
     }
   };
 
-  const getStatusBadge = (contact: any) => {
-    if (contact.responded) {
-      return (
-        <Badge className="bg-green-500">
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Responded
-        </Badge>
-      );
-    }
-    if (contact.last_contacted_at) {
-      return (
-        <Badge variant="secondary">
-          <Mail className="h-3 w-3 mr-1" />
-          Sent
-        </Badge>
-      );
-    }
+  const getStatusBadge = (status: ContactStatus) => {
+    const statusConfig: Record<ContactStatus, { icon: any, className: string, label: string }> = {
+      not_sent: { icon: Circle, className: 'bg-gray-500', label: 'Not Sent' },
+      sent: { icon: Mail, className: 'bg-blue-500', label: 'Sent' },
+      responded: { icon: CheckCircle, className: 'bg-green-500', label: 'Responded' },
+      called: { icon: Phone, className: 'bg-purple-500', label: 'Called' },
+      met_in_person: { icon: Users, className: 'bg-orange-500', label: 'Met in Person' },
+      pitched: { icon: Briefcase, className: 'bg-yellow-500', label: 'Pitched' },
+      closed: { icon: DollarSign, className: 'bg-emerald-600', label: 'Closed' }
+    };
+
+    const config = statusConfig[status];
+    const Icon = config.icon;
+
     return (
-      <Badge variant="outline">
-        <Circle className="h-3 w-3 mr-1" />
-        Not Sent
+      <Badge className={config.className}>
+        <Icon className="h-3 w-3 mr-1" />
+        {config.label}
       </Badge>
     );
   };
@@ -252,26 +273,11 @@ export default function Contacts() {
                 <TableCell>{contact.company || "-"}</TableCell>
                 <TableCell>{contact.job_title || "-"}</TableCell>
                 <TableCell>
-                  {contact.responded ? (
-                    <Badge className="bg-green-500">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Responded
-                    </Badge>
-                  ) : contact.last_contacted_at ? (
-                    <Badge variant="secondary">
-                      <Mail className="h-3 w-3 mr-1" />
-                      Sent
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline">
-                      <Circle className="h-3 w-3 mr-1" />
-                      Not Sent
-                    </Badge>
-                  )}
+                  {getStatusBadge(contact.status || 'not_sent')}
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    {contact.last_contacted_at && !contact.responded && (
+                    {contact.last_contacted_at && contact.status === 'sent' && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -281,15 +287,41 @@ export default function Contacts() {
                         Undo Send
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => toggleResponded(contact.id, contact.responded)}
-                      disabled={!contact.last_contacted_at}
-                      title={!contact.last_contacted_at ? "Contact must be marked as sent first" : ""}
-                    >
-                      {contact.responded ? "Mark Unresponded" : "Mark Responded"}
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!contact.last_contacted_at}
+                          title={!contact.last_contacted_at ? "Contact must be sent first" : ""}
+                        >
+                          Change Status
+                          <ChevronDown className="h-4 w-4 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'responded')}>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Responded
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'called')}>
+                          <Phone className="h-4 w-4 mr-2" />
+                          Called
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'met_in_person')}>
+                          <Users className="h-4 w-4 mr-2" />
+                          Met in Person
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'pitched')}>
+                          <Briefcase className="h-4 w-4 mr-2" />
+                          Pitched
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'closed')}>
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Closed
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       size="sm"
                       variant="outline"
@@ -322,8 +354,13 @@ export default function Contacts() {
     );
   }
 
-  const sentContacts = filteredContacts.filter((c) => c.last_contacted_at && !c.responded);
-  const respondedContacts = filteredContacts.filter((c) => c.responded);
+  const notSentContacts = filteredContacts.filter((c) => c.status === 'not_sent');
+  const sentContacts = filteredContacts.filter((c) => c.status === 'sent');
+  const respondedContacts = filteredContacts.filter((c) => c.status === 'responded');
+  const calledContacts = filteredContacts.filter((c) => c.status === 'called');
+  const metInPersonContacts = filteredContacts.filter((c) => c.status === 'met_in_person');
+  const pitchedContacts = filteredContacts.filter((c) => c.status === 'pitched');
+  const closedContacts = filteredContacts.filter((c) => c.status === 'closed');
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -345,9 +382,12 @@ export default function Contacts() {
       </div>
 
       <Tabs defaultValue="all">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="all">
             All ({filteredContacts.length})
+          </TabsTrigger>
+          <TabsTrigger value="not_sent">
+            Not Sent ({notSentContacts.length})
           </TabsTrigger>
           <TabsTrigger value="sent">
             Sent ({sentContacts.length})
@@ -355,10 +395,26 @@ export default function Contacts() {
           <TabsTrigger value="responded">
             Responded ({respondedContacts.length})
           </TabsTrigger>
+          <TabsTrigger value="called">
+            Called ({calledContacts.length})
+          </TabsTrigger>
+          <TabsTrigger value="met_in_person">
+            Met in Person ({metInPersonContacts.length})
+          </TabsTrigger>
+          <TabsTrigger value="pitched">
+            Pitched ({pitchedContacts.length})
+          </TabsTrigger>
+          <TabsTrigger value="closed">
+            Closed ({closedContacts.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-4">
           {renderContactsTable(filteredContacts)}
+        </TabsContent>
+
+        <TabsContent value="not_sent" className="mt-4">
+          {renderContactsTable(notSentContacts)}
         </TabsContent>
 
         <TabsContent value="sent" className="mt-4">
@@ -367,6 +423,22 @@ export default function Contacts() {
 
         <TabsContent value="responded" className="mt-4">
           {renderContactsTable(respondedContacts)}
+        </TabsContent>
+
+        <TabsContent value="called" className="mt-4">
+          {renderContactsTable(calledContacts)}
+        </TabsContent>
+
+        <TabsContent value="met_in_person" className="mt-4">
+          {renderContactsTable(metInPersonContacts)}
+        </TabsContent>
+
+        <TabsContent value="pitched" className="mt-4">
+          {renderContactsTable(pitchedContacts)}
+        </TabsContent>
+
+        <TabsContent value="closed" className="mt-4">
+          {renderContactsTable(closedContacts)}
         </TabsContent>
       </Tabs>
 
