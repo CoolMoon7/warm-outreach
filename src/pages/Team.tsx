@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Users, Mail, Copy, Check, UserX } from "lucide-react";
+import { Users, Mail, Copy, Check, UserX, Trophy, Award, Medal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Team() {
@@ -76,10 +76,16 @@ export default function Team() {
       // Get roles and email counts for each member
       const membersWithData = await Promise.all(
         (members || []).map(async (member) => {
-          const { count } = await supabase
+          const { count: emailCount } = await supabase
             .from("emails")
             .select("*", { count: "exact", head: true })
             .eq("sender_id", member.user_id);
+
+          const { count: respondedCount } = await supabase
+            .from("emails")
+            .select("*", { count: "exact", head: true })
+            .eq("sender_id", member.user_id)
+            .eq("responded", true);
 
           // Get role
           const { data: roleData } = await supabase
@@ -88,15 +94,22 @@ export default function Team() {
             .eq("user_id", member.user_id)
             .maybeSingle();
 
+          const responseRate = emailCount ? ((respondedCount || 0) / emailCount) * 100 : 0;
+
           return {
             ...member,
-            emailCount: count || 0,
+            emailCount: emailCount || 0,
+            respondedCount: respondedCount || 0,
+            responseRate,
             role: roleData?.role || "member",
           };
         })
       );
 
-      setTeamMembers(membersWithData);
+      // Sort by response rate (highest first)
+      const sortedMembers = membersWithData.sort((a, b) => b.responseRate - a.responseRate);
+
+      setTeamMembers(sortedMembers);
     } catch (error) {
       console.error("Error loading team data:", error);
     }
@@ -228,6 +241,7 @@ export default function Team() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-20">Rank</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
@@ -237,43 +251,79 @@ export default function Team() {
                       Emails Sent
                     </div>
                   </TableHead>
+                  <TableHead className="text-right">Response Rate</TableHead>
                   {isFounder && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {teamMembers.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">
-                      {member.name || "Unnamed"}
-                    </TableCell>
-                    <TableCell>{member.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={member.role === "founder" ? "default" : "secondary"}>
-                        {member.role === "founder" ? "Owner" : "Member"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="font-semibold">{member.emailCount}</span>
-                    </TableCell>
-                    {isFounder && (
-                      <TableCell className="text-right">
-                        {member.role !== "founder" && member.user_id !== currentUserId && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setMemberToRemove(member)}
-                          >
-                            <UserX className="h-4 w-4 mr-2" />
-                            Remove
-                          </Button>
-                        )}
+                {teamMembers.map((member, index) => {
+                  const rank = index + 1;
+                  const getRankBadge = () => {
+                    if (rank === 1) {
+                      return (
+                        <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">
+                          <Trophy className="h-3 w-3 mr-1" />
+                          1st
+                        </Badge>
+                      );
+                    }
+                    if (rank === 2) {
+                      return (
+                        <Badge className="bg-gray-400 hover:bg-gray-500 text-white border-0">
+                          <Award className="h-3 w-3 mr-1" />
+                          2nd
+                        </Badge>
+                      );
+                    }
+                    if (rank === 3) {
+                      return (
+                        <Badge className="bg-orange-600 hover:bg-orange-700 text-white border-0">
+                          <Medal className="h-3 w-3 mr-1" />
+                          3rd
+                        </Badge>
+                      );
+                    }
+                    return <span className="text-muted-foreground">{rank}</span>;
+                  };
+
+                  return (
+                    <TableRow key={member.id}>
+                      <TableCell>{getRankBadge()}</TableCell>
+                      <TableCell className="font-medium">
+                        {member.name || "Unnamed"}
                       </TableCell>
-                    )}
-                  </TableRow>
-                ))}
+                      <TableCell>{member.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={member.role === "founder" ? "default" : "secondary"}>
+                          {member.role === "founder" ? "Owner" : "Member"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="font-semibold">{member.emailCount}</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="font-semibold">{member.responseRate.toFixed(1)}%</span>
+                      </TableCell>
+                      {isFounder && (
+                        <TableCell className="text-right">
+                          {member.role !== "founder" && member.user_id !== currentUserId && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setMemberToRemove(member)}
+                            >
+                              <UserX className="h-4 w-4 mr-2" />
+                              Remove
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
                 {teamMembers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isFounder ? 5 : 4} className="text-center text-muted-foreground">
+                    <TableCell colSpan={isFounder ? 7 : 6} className="text-center text-muted-foreground">
                       No team members yet
                     </TableCell>
                   </TableRow>
