@@ -284,6 +284,7 @@ export default function FolderDetail() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Company</TableHead>
+                    <TableHead>Job Title</TableHead>
                     <TableHead>Last Contacted</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -294,7 +295,8 @@ export default function FolderDetail() {
                     <TableRow key={contact.id}>
                       <TableCell className="font-medium">{contact.name}</TableCell>
                       <TableCell>{contact.email}</TableCell>
-                      <TableCell>{contact.company}</TableCell>
+                      <TableCell>{contact.company || "-"}</TableCell>
+                      <TableCell>{contact.job_title || "-"}</TableCell>
                       <TableCell>
                         {contact.last_contacted_at
                           ? new Date(contact.last_contacted_at).toLocaleDateString()

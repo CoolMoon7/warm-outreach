@@ -62,20 +62,30 @@ export default function Contacts() {
   };
 
   const filterContacts = () => {
-    if (!searchQuery) {
-      setFilteredContacts(contacts);
-      return;
+    let filtered = contacts;
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = contacts.filter(
+        (contact) =>
+          contact.name?.toLowerCase().includes(query) ||
+          contact.email?.toLowerCase().includes(query) ||
+          contact.company?.toLowerCase().includes(query) ||
+          contact.job_title?.toLowerCase().includes(query)
+      );
     }
 
-    const query = searchQuery.toLowerCase();
-    const filtered = contacts.filter(
-      (contact) =>
-        contact.name?.toLowerCase().includes(query) ||
-        contact.email?.toLowerCase().includes(query) ||
-        contact.company?.toLowerCase().includes(query) ||
-        contact.job_title?.toLowerCase().includes(query)
-    );
-    setFilteredContacts(filtered);
+    // Sort so sent emails (with last_contacted_at) go to the bottom
+    const sorted = filtered.sort((a, b) => {
+      const aHasSent = !!a.last_contacted_at;
+      const bHasSent = !!b.last_contacted_at;
+      
+      if (aHasSent && !bHasSent) return 1;
+      if (!aHasSent && bHasSent) return -1;
+      return 0;
+    });
+    
+    setFilteredContacts(sorted);
   };
 
   const toggleResponded = async (contactId: string, currentStatus: boolean) => {
@@ -222,6 +232,7 @@ export default function Contacts() {
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Company</TableHead>
+            <TableHead>Job Title</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -229,7 +240,7 @@ export default function Contacts() {
         <TableBody>
           {contactsList.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                 No contacts found
               </TableCell>
             </TableRow>
@@ -238,14 +249,8 @@ export default function Contacts() {
               <TableRow key={contact.id}>
                 <TableCell className="font-medium">{contact.name}</TableCell>
                 <TableCell>{contact.email}</TableCell>
-                <TableCell>
-                  <div>
-                    <div>{contact.company || "-"}</div>
-                    {contact.job_title && (
-                      <div className="text-xs text-muted-foreground">{contact.job_title}</div>
-                    )}
-                  </div>
-                </TableCell>
+                <TableCell>{contact.company || "-"}</TableCell>
+                <TableCell>{contact.job_title || "-"}</TableCell>
                 <TableCell>
                   {contact.responded ? (
                     <Badge className="bg-green-500">
