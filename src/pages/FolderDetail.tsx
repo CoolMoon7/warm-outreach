@@ -381,7 +381,39 @@ export default function FolderDetail() {
                             : "Never"}
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(contact.status || 'not_sent')}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <div className="cursor-pointer">
+                                {getStatusBadge(contact.status || 'not_sent')}
+                              </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-background">
+                              <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'sent')}>
+                                <Mail className="h-4 w-4 mr-2" />
+                                Sent
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'responded')}>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Responded
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'called')}>
+                                <Phone className="h-4 w-4 mr-2" />
+                                Called
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'met_in_person')}>
+                                <Users className="h-4 w-4 mr-2" />
+                                Met in Person
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'pitched')}>
+                                <Briefcase className="h-4 w-4 mr-2" />
+                                Pitched
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'closed')}>
+                                <DollarSign className="h-4 w-4 mr-2" />
+                                Closed
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -392,51 +424,6 @@ export default function FolderDetail() {
                             >
                               Generate Email
                             </Button>
-                            {contact.last_contacted_at && contact.status === 'sent' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleUndoSend(contact.id)}
-                              >
-                                <Undo className="h-4 w-4 mr-1" />
-                                Undo Send
-                              </Button>
-                            )}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  disabled={!contact.last_contacted_at}
-                                  title={!contact.last_contacted_at ? "Contact must be sent first" : ""}
-                                >
-                                  Change Status
-                                  <ChevronDown className="h-4 w-4 ml-1" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'responded')}>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Responded
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'called')}>
-                                  <Phone className="h-4 w-4 mr-2" />
-                                  Called
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'met_in_person')}>
-                                  <Users className="h-4 w-4 mr-2" />
-                                  Met in Person
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'pitched')}>
-                                  <Briefcase className="h-4 w-4 mr-2" />
-                                  Pitched
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'closed')}>
-                                  <DollarSign className="h-4 w-4 mr-2" />
-                                  Closed
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                             <Button
                               size="sm"
                               variant="outline"
