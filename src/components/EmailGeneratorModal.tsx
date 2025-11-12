@@ -62,7 +62,7 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
       // Get current contact values to restore if undone
       const { data: currentContact } = await supabase
         .from("contacts")
-        .select("last_contacted_at, last_template_id, last_sender_id")
+        .select("last_contacted_at, last_template_id, last_sender_id, status")
         .eq("id", contact.id)
         .single();
 
@@ -70,6 +70,7 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
         last_contacted_at: currentContact?.last_contacted_at || null,
         last_template_id: currentContact?.last_template_id || null,
         last_sender_id: currentContact?.last_sender_id || null,
+        status: currentContact?.status || 'not_sent',
       };
 
       // Insert email record
@@ -94,6 +95,7 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
           last_contacted_at: new Date().toISOString(),
           last_template_id: template.id,
           last_sender_id: user.id,
+          status: 'sent',
         })
         .eq("id", contact.id);
 
