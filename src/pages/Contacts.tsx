@@ -343,6 +343,7 @@ export default function Contacts() {
 
   const notSentContacts = filteredContacts.filter((c) => c.status === 'not_sent');
   const sentContacts = filteredContacts.filter((c) => c.status === 'sent');
+  const responseContacts = filteredContacts.filter((c) => ['responded', 'called', 'met_in_person', 'pitched', 'closed'].includes(c.status));
   const respondedContacts = filteredContacts.filter((c) => c.status === 'responded');
   const calledContacts = filteredContacts.filter((c) => c.status === 'called');
   const metInPersonContacts = filteredContacts.filter((c) => c.status === 'met_in_person');
@@ -373,6 +374,9 @@ export default function Contacts() {
           <TabsTrigger value="all">
             All ({filteredContacts.length})
           </TabsTrigger>
+          <TabsTrigger value="responses">
+            Responses ({responseContacts.length})
+          </TabsTrigger>
           <TabsTrigger value="not_sent">
             Not Sent ({notSentContacts.length})
           </TabsTrigger>
@@ -398,6 +402,10 @@ export default function Contacts() {
 
         <TabsContent value="all" className="mt-4">
           {renderContactsTable(filteredContacts)}
+        </TabsContent>
+
+        <TabsContent value="responses" className="mt-4">
+          {renderContactsTable(responseContacts)}
         </TabsContent>
 
         <TabsContent value="not_sent" className="mt-4">

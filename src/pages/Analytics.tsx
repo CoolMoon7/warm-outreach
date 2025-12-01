@@ -37,7 +37,7 @@ export default function Analytics() {
       // Get overall stats from contacts table (more accurate)
       const { data: allContacts } = await supabase
         .from("contacts")
-        .select("responded, last_contacted_at")
+        .select("status, last_contacted_at")
         .eq("team_id", profile?.team_id);
 
       const { count: contactCount } = await supabase
@@ -48,7 +48,10 @@ export default function Analytics() {
       // Only count contacts that have been sent emails (have last_contacted_at)
       const sentContacts = allContacts?.filter((c) => c.last_contacted_at) || [];
       const totalSent = sentContacts.length;
-      const totalResponded = sentContacts.filter((c) => c.responded).length;
+      
+      // Count all engagement statuses as responses
+      const responseStatuses = ['responded', 'called', 'met_in_person', 'pitched', 'closed'];
+      const totalResponded = sentContacts.filter((c) => responseStatuses.includes(c.status)).length;
 
       setStats({
         totalSent,
