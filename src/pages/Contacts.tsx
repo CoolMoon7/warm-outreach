@@ -26,6 +26,7 @@ type Platform = 'email' | 'linkedin' | 'x';
 export default function Contacts() {
   const { platform } = useParams<{ platform?: Platform }>();
   const [contacts, setContacts] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
