@@ -251,6 +251,16 @@ export default function Contacts() {
                       </DropdownMenu>
                     </TableCell>
                     <TableCell>
+                      {(() => {
+                        const { initials, name } = getCreatorInitials(contact.created_by);
+                        return (
+                          <div title={name} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                            {initials}
+                          </div>
+                        );
+                      })()}
+                    </TableCell>
+                    <TableCell>
                       <div className="flex gap-2">
                         <Button size="sm" onClick={() => handleGenerateEmail(contact)} disabled={!selectedTemplate}>
                           Generate
