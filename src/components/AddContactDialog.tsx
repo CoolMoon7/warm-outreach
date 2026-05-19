@@ -59,6 +59,7 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
 
       const { error } = await supabase.from("contacts").insert({
         team_id: profile.team_id,
+        created_by: user.id,
         platform: formData.platform,
         name,
         first_name: formData.first_name || null,
