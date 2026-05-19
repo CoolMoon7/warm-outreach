@@ -26,6 +26,7 @@ type Platform = 'email' | 'linkedin' | 'x';
 export default function Contacts() {
   const { platform } = useParams<{ platform?: Platform }>();
   const [contacts, setContacts] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,12 +47,14 @@ export default function Contacts() {
         .from("profiles").select("team_id").eq("user_id", user?.id).single();
       const teamId = profile?.team_id;
 
-      const [{ data: contactsData }, { data: templatesData }] = await Promise.all([
+      const [{ data: contactsData }, { data: templatesData }, { data: profilesData }] = await Promise.all([
         supabase.from("contacts").select("*").eq("team_id", teamId).order("created_at", { ascending: false }),
         supabase.from("templates").select("*").eq("team_id", teamId).order("created_at", { ascending: false }),
+        supabase.from("profiles").select("user_id, name, email").eq("team_id", teamId),
       ]);
       setContacts(contactsData || []);
       setTemplates(templatesData || []);
+      setProfiles(profilesData || []);
     } catch (error: any) {
       sonnerToast.error("Error loading contacts", { description: error.message });
     } finally {
@@ -147,6 +150,15 @@ export default function Contacts() {
 
   const title = platform ? `${platformLabel(platform)} Contacts` : "All Contacts";
 
+  const getCreatorInitials = (userId?: string | null) => {
+    if (!userId) return { initials: "—", name: "Unknown" };
+    const p = profiles.find((x) => x.user_id === userId);
+    const source = p?.name || p?.email || "?";
+    const parts = source.split(/[\s@.]+/).filter(Boolean);
+    const initials = ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase() || source[0].toUpperCase();
+    return { initials, name: p?.name || p?.email || "Unknown" };
+  };
+
   if (loading) {
     return <div className="container mx-auto px-4 py-8"><p className="text-muted-foreground">Loading...</p></div>;
   }
@@ -200,13 +212,14 @@ export default function Contacts() {
                   <TableHead>Company</TableHead>
                   <TableHead>Job Title</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Created By</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={platform ? 6 : 7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={platform ? 7 : 8} className="text-center text-muted-foreground py-8">
                       No contacts found
                     </TableCell>
                   </TableRow>
@@ -236,6 +249,16 @@ export default function Contacts() {
                           <DropdownMenuItem onClick={() => updateContactStatus(contact.id, 'closed')}><DollarSign className="h-4 w-4 mr-2" />Closed</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const { initials, name } = getCreatorInitials(contact.created_by);
+                        return (
+                          <div title={name} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                            {initials}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
