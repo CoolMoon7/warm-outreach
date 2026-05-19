@@ -19,9 +19,9 @@ export type Database = {
           company: string | null
           company_domain: string | null
           created_at: string | null
-          email: string
+          email: string | null
           first_name: string | null
-          folder_id: string
+          folder_id: string | null
           id: string
           job_title: string | null
           last_contacted_at: string | null
@@ -31,18 +31,20 @@ export type Database = {
           linkedin_profile: string | null
           location: string | null
           name: string
+          platform: Database["public"]["Enums"]["contact_platform"]
           responded: boolean | null
           role: string | null
           status: Database["public"]["Enums"]["contact_status"] | null
           team_id: string
+          x_handle: string | null
         }
         Insert: {
           company?: string | null
           company_domain?: string | null
           created_at?: string | null
-          email: string
+          email?: string | null
           first_name?: string | null
-          folder_id: string
+          folder_id?: string | null
           id?: string
           job_title?: string | null
           last_contacted_at?: string | null
@@ -52,18 +54,20 @@ export type Database = {
           linkedin_profile?: string | null
           location?: string | null
           name: string
+          platform?: Database["public"]["Enums"]["contact_platform"]
           responded?: boolean | null
           role?: string | null
           status?: Database["public"]["Enums"]["contact_status"] | null
           team_id: string
+          x_handle?: string | null
         }
         Update: {
           company?: string | null
           company_domain?: string | null
           created_at?: string | null
-          email?: string
+          email?: string | null
           first_name?: string | null
-          folder_id?: string
+          folder_id?: string | null
           id?: string
           job_title?: string | null
           last_contacted_at?: string | null
@@ -73,10 +77,12 @@ export type Database = {
           linkedin_profile?: string | null
           location?: string | null
           name?: string
+          platform?: Database["public"]["Enums"]["contact_platform"]
           responded?: boolean | null
           role?: string | null
           status?: Database["public"]["Enums"]["contact_status"] | null
           team_id?: string
+          x_handle?: string | null
         }
         Relationships: [
           {
@@ -113,7 +119,7 @@ export type Database = {
         Row: {
           contact_id: string
           created_at: string | null
-          folder_id: string
+          folder_id: string | null
           id: string
           notes: string | null
           responded: boolean | null
@@ -124,7 +130,7 @@ export type Database = {
         Insert: {
           contact_id: string
           created_at?: string | null
-          folder_id: string
+          folder_id?: string | null
           id?: string
           notes?: string | null
           responded?: boolean | null
@@ -135,7 +141,7 @@ export type Database = {
         Update: {
           contact_id?: string
           created_at?: string | null
-          folder_id?: string
+          folder_id?: string | null
           id?: string
           notes?: string | null
           responded?: boolean | null
@@ -367,6 +373,7 @@ export type Database = {
     }
     Enums: {
       app_role: "founder" | "member"
+      contact_platform: "email" | "linkedin" | "x"
       contact_status:
         | "not_sent"
         | "sent"
@@ -503,6 +510,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["founder", "member"],
+      contact_platform: ["email", "linkedin", "x"],
       contact_status: [
         "not_sent",
         "sent",
