@@ -219,7 +219,7 @@ export default function Contacts() {
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={platform ? 6 : 7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={platform ? 7 : 8} className="text-center text-muted-foreground py-8">
                       No contacts found
                     </TableCell>
                   </TableRow>
