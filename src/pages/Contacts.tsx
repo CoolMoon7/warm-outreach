@@ -47,12 +47,14 @@ export default function Contacts() {
         .from("profiles").select("team_id").eq("user_id", user?.id).single();
       const teamId = profile?.team_id;
 
-      const [{ data: contactsData }, { data: templatesData }] = await Promise.all([
+      const [{ data: contactsData }, { data: templatesData }, { data: profilesData }] = await Promise.all([
         supabase.from("contacts").select("*").eq("team_id", teamId).order("created_at", { ascending: false }),
         supabase.from("templates").select("*").eq("team_id", teamId).order("created_at", { ascending: false }),
+        supabase.from("profiles").select("user_id, name, email").eq("team_id", teamId),
       ]);
       setContacts(contactsData || []);
       setTemplates(templatesData || []);
+      setProfiles(profilesData || []);
     } catch (error: any) {
       sonnerToast.error("Error loading contacts", { description: error.message });
     } finally {
