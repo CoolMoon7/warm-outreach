@@ -150,13 +150,11 @@ export default function Contacts() {
 
   const title = platform ? `${platformLabel(platform)} Contacts` : "All Contacts";
 
-  const getCreatorInitials = (userId?: string | null) => {
-    if (!userId) return { initials: "—", name: "Unknown" };
+  const getCreatorName = (userId?: string | null) => {
+    if (!userId) return "—";
     const p = profiles.find((x) => x.user_id === userId);
-    const source = p?.name || p?.email || "?";
-    const parts = source.split(/[\s@.]+/).filter(Boolean);
-    const initials = ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase() || source[0].toUpperCase();
-    return { initials, name: p?.name || p?.email || "Unknown" };
+    const source = p?.name || p?.email || "Unknown";
+    return source.split(/[\s@.]+/).filter(Boolean)[0] || source;
   };
 
   if (loading) {
@@ -251,14 +249,7 @@ export default function Contacts() {
                       </DropdownMenu>
                     </TableCell>
                     <TableCell>
-                      {(() => {
-                        const { initials, name } = getCreatorInitials(contact.created_by);
-                        return (
-                          <div title={name} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-                            {initials}
-                          </div>
-                        );
-                      })()}
+                      <Badge variant="secondary">{getCreatorName(contact.created_by)}</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
