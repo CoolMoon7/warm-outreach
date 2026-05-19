@@ -212,6 +212,7 @@ export default function Contacts() {
                   <TableHead>Company</TableHead>
                   <TableHead>Job Title</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Created By</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
