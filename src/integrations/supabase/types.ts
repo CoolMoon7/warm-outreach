@@ -19,6 +19,7 @@ export type Database = {
           company: string | null
           company_domain: string | null
           created_at: string | null
+          created_by: string | null
           email: string | null
           first_name: string | null
           folder_id: string | null
@@ -42,6 +43,7 @@ export type Database = {
           company?: string | null
           company_domain?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           first_name?: string | null
           folder_id?: string | null
@@ -65,6 +67,7 @@ export type Database = {
           company?: string | null
           company_domain?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
           first_name?: string | null
           folder_id?: string | null
