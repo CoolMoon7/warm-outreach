@@ -109,6 +109,16 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="linkedin_profile">LinkedIn Profile URL</Label>
+            <Input
+              id="linkedin_profile"
+              value={formData.linkedin_profile}
+              onChange={(e) => setFormData({ ...formData, linkedin_profile: e.target.value })}
+              placeholder="https://linkedin.com/in/..."
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="x_handle">X Profile URL</Label>
             <Input
               id="x_handle"
