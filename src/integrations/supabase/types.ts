@@ -32,6 +32,7 @@ export type Database = {
           linkedin_profile: string | null
           location: string | null
           name: string
+          notes: string | null
           platform: Database["public"]["Enums"]["contact_platform"]
           responded: boolean | null
           role: string | null
@@ -56,6 +57,7 @@ export type Database = {
           linkedin_profile?: string | null
           location?: string | null
           name: string
+          notes?: string | null
           platform?: Database["public"]["Enums"]["contact_platform"]
           responded?: boolean | null
           role?: string | null
@@ -80,6 +82,7 @@ export type Database = {
           linkedin_profile?: string | null
           location?: string | null
           name?: string
+          notes?: string | null
           platform?: Database["public"]["Enums"]["contact_platform"]
           responded?: boolean | null
           role?: string | null
