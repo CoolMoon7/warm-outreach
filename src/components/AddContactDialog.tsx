@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
@@ -27,6 +28,7 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
     x_handle: "",
     company: "",
     job_title: "",
+    notes: "",
   });
 
   const reset = () =>
@@ -39,6 +41,7 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
       x_handle: "",
       company: "",
       job_title: "",
+      notes: "",
     });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,6 +72,7 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
         x_handle: formData.x_handle || null,
         company: formData.company || null,
         job_title: formData.job_title || null,
+        notes: formData.notes || null,
       } as any);
 
       if (error) throw error;
@@ -147,6 +151,15 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
           <div className="space-y-2">
             <Label>Job Title</Label>
             <Input value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Notes</Label>
+            <Textarea
+              rows={4}
+              placeholder="Write any notes about this contact..."
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            />
           </div>
 
           <div className="flex justify-end gap-2">
