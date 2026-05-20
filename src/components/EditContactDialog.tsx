@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +22,7 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
     company: contact.company || "",
     job_title: contact.job_title || "",
     role: contact.role || "",
+    notes: contact.notes || "",
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -40,6 +42,7 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
           company: formData.company,
           job_title: formData.job_title,
           role: formData.role,
+          notes: formData.notes,
         })
         .eq("id", contact.id);
 
@@ -125,6 +128,17 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
               id="role"
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Write any notes about this contact..."
+              rows={4}
             />
           </div>
 

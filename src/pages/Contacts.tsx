@@ -14,7 +14,8 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CheckCircle, Mail, Circle, Search, Edit, Trash, Phone, Users, Briefcase, DollarSign, Linkedin, Twitter } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { CheckCircle, Mail, Circle, Search, Edit, Trash, Phone, Users, Briefcase, DollarSign, Linkedin, Twitter, StickyNote } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { EditContactDialog } from "@/components/EditContactDialog";
 import { AddContactDialog } from "@/components/AddContactDialog";
@@ -130,7 +131,8 @@ export default function Contacts() {
       c.company?.toLowerCase().includes(q) ||
       c.job_title?.toLowerCase().includes(q) ||
       c.linkedin_profile?.toLowerCase().includes(q) ||
-      c.x_handle?.toLowerCase().includes(q)
+      c.x_handle?.toLowerCase().includes(q) ||
+      c.notes?.toLowerCase().includes(q)
     );
   }
 
@@ -211,13 +213,14 @@ export default function Contacts() {
                   <TableHead>Job Title</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created By</TableHead>
+                  <TableHead>Notes</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={platform ? 7 : 8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={platform ? 8 : 9} className="text-center text-muted-foreground py-8">
                       No contacts found
                     </TableCell>
                   </TableRow>
@@ -250,6 +253,22 @@ export default function Contacts() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{getCreatorName(contact.created_by)}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {contact.notes ? (
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <span className="cursor-help text-sm text-muted-foreground max-w-[120px] truncate block">
+                              {contact.notes.slice(0, 30)}{contact.notes.length > 30 ? "..." : ""}
+                            </span>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-80">
+                            <p className="text-sm whitespace-pre-wrap">{contact.notes}</p>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
