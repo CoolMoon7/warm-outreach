@@ -19,6 +19,8 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
     first_name: contact.first_name || "",
     last_name: contact.last_name || "",
     email: contact.email || "",
+    linkedin_profile: contact.linkedin_profile || "",
+    x_handle: contact.x_handle || "",
     company: contact.company || "",
     job_title: contact.job_title || "",
     role: contact.role || "",
@@ -39,6 +41,8 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
           last_name: formData.last_name,
           name: `${formData.first_name} ${formData.last_name}`.trim(),
           email: formData.email,
+          linkedin_profile: formData.linkedin_profile,
+          x_handle: formData.x_handle,
           company: formData.company,
           job_title: formData.job_title,
           role: formData.role,
@@ -100,7 +104,26 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linkedin_profile">LinkedIn Profile URL</Label>
+            <Input
+              id="linkedin_profile"
+              value={formData.linkedin_profile}
+              onChange={(e) => setFormData({ ...formData, linkedin_profile: e.target.value })}
+              placeholder="https://linkedin.com/in/..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="x_handle">X Profile URL</Label>
+            <Input
+              id="x_handle"
+              value={formData.x_handle}
+              onChange={(e) => setFormData({ ...formData, x_handle: e.target.value })}
+              placeholder="https://x.com/username"
             />
           </div>
 

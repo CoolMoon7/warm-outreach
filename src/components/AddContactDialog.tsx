@@ -139,8 +139,8 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
           )}
           {formData.platform === "x" && (
             <div className="space-y-2">
-              <Label>X Handle</Label>
-              <Input required value={formData.x_handle} onChange={(e) => setFormData({ ...formData, x_handle: e.target.value })} placeholder="@username" />
+              <Label>X Profile URL</Label>
+              <Input required value={formData.x_handle} onChange={(e) => setFormData({ ...formData, x_handle: e.target.value })} placeholder="https://x.com/username" />
             </div>
           )}
 
