@@ -152,6 +152,15 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
             <Label>Job Title</Label>
             <Input value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />
           </div>
+          <div className="space-y-2">
+            <Label>Notes</Label>
+            <Textarea
+              rows={4}
+              placeholder="Write any notes about this contact..."
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            />
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
