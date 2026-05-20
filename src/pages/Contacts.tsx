@@ -14,7 +14,8 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CheckCircle, Mail, Circle, Search, Edit, Trash, Phone, Users, Briefcase, DollarSign, Linkedin, Twitter } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { CheckCircle, Mail, Circle, Search, Edit, Trash, Phone, Users, Briefcase, DollarSign, Linkedin, Twitter, StickyNote } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { EditContactDialog } from "@/components/EditContactDialog";
 import { AddContactDialog } from "@/components/AddContactDialog";
