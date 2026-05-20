@@ -220,7 +220,7 @@ export default function Contacts() {
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={platform ? 7 : 8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={platform ? 8 : 9} className="text-center text-muted-foreground py-8">
                       No contacts found
                     </TableCell>
                   </TableRow>
@@ -253,6 +253,22 @@ export default function Contacts() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{getCreatorName(contact.created_by)}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {contact.notes ? (
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <span className="cursor-help text-sm text-muted-foreground max-w-[120px] truncate block">
+                              {contact.notes.slice(0, 30)}{contact.notes.length > 30 ? "..." : ""}
+                            </span>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-80">
+                            <p className="text-sm whitespace-pre-wrap">{contact.notes}</p>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
