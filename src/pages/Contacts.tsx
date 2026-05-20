@@ -131,7 +131,8 @@ export default function Contacts() {
       c.company?.toLowerCase().includes(q) ||
       c.job_title?.toLowerCase().includes(q) ||
       c.linkedin_profile?.toLowerCase().includes(q) ||
-      c.x_handle?.toLowerCase().includes(q)
+      c.x_handle?.toLowerCase().includes(q) ||
+      c.notes?.toLowerCase().includes(q)
     );
   }
 
@@ -212,6 +213,7 @@ export default function Contacts() {
                   <TableHead>Job Title</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created By</TableHead>
+                  <TableHead>Notes</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
