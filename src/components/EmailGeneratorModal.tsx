@@ -51,7 +51,7 @@ export const EmailGeneratorModal = ({ open, onOpenChange, contact, template, onE
   const body = replacePlaceholders(template.body_html);
 
   const platform = contact.platform || 'email';
-  const toLabel = platform === 'linkedin' ? 'LinkedIn Profile' : platform === 'x' ? 'X Handle' : 'To';
+  const toLabel = platform === 'linkedin' ? 'LinkedIn Profile' : platform === 'x' ? 'X Profile URL' : 'To';
   const toValue = platform === 'linkedin' ? (contact.linkedin_profile || '') : platform === 'x' ? (contact.x_handle || '') : (contact.email || '');
 
   const copyToClipboard = async (text: string, label: string) => {

@@ -105,6 +105,16 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="x_handle">X Profile URL</Label>
+            <Input
+              id="x_handle"
+              value={formData.x_handle}
+              onChange={(e) => setFormData({ ...formData, x_handle: e.target.value })}
+              placeholder="https://x.com/username"
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
             <Input
               id="company"
