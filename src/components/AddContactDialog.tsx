@@ -28,6 +28,7 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
     x_handle: "",
     company: "",
     job_title: "",
+    notes: "",
   });
 
   const reset = () =>
