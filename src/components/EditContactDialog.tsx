@@ -131,6 +131,17 @@ export const EditContactDialog = ({ open, onOpenChange, contact, onContactUpdate
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Write any notes about this contact..."
+              rows={4}
+            />
+          </div>
+
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
