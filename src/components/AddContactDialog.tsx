@@ -72,6 +72,7 @@ export const AddContactDialog = ({ defaultPlatform = "email", onContactAdded }: 
         x_handle: formData.x_handle || null,
         company: formData.company || null,
         job_title: formData.job_title || null,
+        notes: formData.notes || null,
       } as any);
 
       if (error) throw error;
